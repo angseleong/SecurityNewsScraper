@@ -1,0 +1,3 @@
+[project]
+python_interpreter = "venv/bin/python"
+source_paths = ["backend"]
