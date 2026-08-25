@@ -110,6 +110,32 @@ def register_routes(app: Flask) -> None:
             for sev, count in session.query(Article.severity, func.count(Article.id)).group_by(Article.severity).all():
                 severity_breakdown[sev or "info"] = count
 
+            # Incident Trends (Last 7 days approx, grouped by scraped_at DATE string representation in SQLite)
+            # In SQLite we can use strftime('%Y-%m-%d', scraped_at)
+            incident_trends = []
+            try:
+                date_func = func.strftime('%Y-%m-%d', Article.scraped_at)
+                trends_data = session.query(date_func.label('day'), func.count(Article.id)).group_by('day').order_by(date_func.desc()).limit(7).all()
+                for day, count in reversed(trends_data):
+                    incident_trends.append({"date": day, "count": count})
+            except Exception as e:
+                logger.error(f"Error computing trends: {e}")
+
+            # Top Software
+            top_software = []
+            try:
+                cves = session.query(CVE.affected_software).filter(CVE.affected_software != None).all()
+                software_counts = {}
+                for c in cves:
+                    sw_list = [s.strip() for s in c.affected_software.split(",") if s.strip()]
+                    for sw in sw_list:
+                        software_counts[sw] = software_counts.get(sw, 0) + 1
+                sorted_sw = sorted(software_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                for sw, count in sorted_sw:
+                    top_software.append({"name": sw, "count": count})
+            except Exception as e:
+                logger.error(f"Error computing top software: {e}")
+
             last_log = session.query(ScrapeLog).order_by(ScrapeLog.finished_at.desc()).first()
 
             return jsonify({
@@ -117,6 +143,8 @@ def register_routes(app: Flask) -> None:
                 "total_cves": total_cves,
                 "sources": sources,
                 "severity_breakdown": severity_breakdown,
+                "incident_trends": incident_trends,
+                "top_software": top_software,
                 "last_scrape": last_log.finished_at.isoformat() if last_log and last_log.finished_at else None,
             })
         finally:

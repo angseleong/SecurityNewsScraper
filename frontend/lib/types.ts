@@ -25,6 +25,8 @@ export interface Stats {
   total_cves: number
   sources: Record<string, number>
   severity_breakdown: Record<string, number>
+  incident_trends?: { date: string; count: number }[]
+  top_software?: { name: string; count: number }[]
   last_scrape: string | null
 }
 

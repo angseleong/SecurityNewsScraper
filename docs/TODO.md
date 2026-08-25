@@ -143,26 +143,31 @@ Gunakan file ini sebagai panduan kerja utama. **Jangan mulai tahap selanjutnya s
 
 ---
 
-### AI Threat Intelligence & Summarizer
-- [ ] Integrasi LLM (Google Gemini / Groq API) untuk auto-summarize berita keamanan (TL;DR 1-2 kalimat)
-- [ ] AI Actionable Recommendations: Ekstraksi rekomendasi mitigasi & patch otomatis dari artikel
-- [ ] Tombol/Modal "✨ AI Summary" di kartu artikel pada Frontend Dashboard
+## BACKLOG — "Bloomberg for Bug Hunters" (Upcoming Phases)
 
-### Filter Notifikasi Lanjutan
-- [ ] Tambahkan konfigurasi keyword target software spesifik per user
-- [ ] Tambahkan minimum CVSS score filter (jika skor tersedia di artikel)
+### Phase 9 — AI Threat Intel & Pre-computed Summary
+- [ ] Setup `GEMINI_API_KEY` di `config.py` dan `.env`.
+- [ ] Update Skema DB: Tambah kolom `ai_summary`, `ai_mitigation`, `ai_attack_vector`, `ai_shodan_dork` di tabel `articles`.
+- [ ] Buat `extractor/ai_analyzer.py`: Integrasi `google-genai` dengan instruksi terstruktur untuk mengekstrak data spesifik dari teks kerentanan.
+- [ ] Integrasi Pipeline: Panggil AI Analyzer di `scheduler/jobs.py` saat artikel baru ditemukan.
+- [ ] Update UI: Tambahkan *Expandable Drawer/Modal* di kartu artikel untuk menampilkan hasil ekstraksi AI secara instan.
 
-### UI Enhancements
-- [ ] Dark/Light mode toggle
-- [ ] Grafik interaktif: jumlah CVE per minggu menggunakan Chart.js
-- [ ] Export data ke CSV dari dashboard
+### Phase 10 — Powerful Search & Filter
+- [ ] **Search by CVE / Vendor:** Modifikasi query database di `routes.py` agar pencarian bisa melacak CVE ID atau keyword vendor secara spesifik.
+- [ ] **Toggle Filter:** Tambahkan tombol cepat "Only with CVEs" dan "Critical Only" di UI Next.js.
+- [ ] **Date Filter:** Tambahkan dropdown filter waktu (Today, This Week, All Time).
+- [ ] **Scope Matcher (Watchlist):** Fitur untuk mendaftarkan aset target. Notifikasi diprioritaskan jika ada kerentanan di aset tersebut.
 
-### Data Enrichment
-- [ ] Integrasi dengan NVD API untuk mengambil detail CVE resmi (CVSS score, deskripsi resmi) berdasarkan CVE ID yang ditemukan
+### Phase 11 — Analytics, Visualisasi Data & Terminal UI
+- [x] **Bloomberg Terminal UI:** Rombak desain Next.js menjadi *dense data grid* dengan tema gelap, *glassmorphism*, dan indikator warna yang lebih mencolok.
+- [x] **Top Affected Software:** Buat *Tag Cloud* atau *list* vendor yang paling banyak diserang minggu ini.
+- [x] **Incident Trends Chart:** Pasang Chart.js/Recharts untuk grafik batang/garis tren kerentanan baru.
+- [x] **CVE Explorer View:** Halaman khusus (`/cves`) untuk melihat daftar semua CVE beserta status eksploitasinya.
+- [ ] **Incident Grouping:** Gabungkan berita kerentanan yang sama dari berbagai sumber menjadi 1 insiden di UI.
 
-### Multi-Notification Channel
-- [ ] Support notifikasi via Email (SMTP)
-- [ ] Support notifikasi via Discord Webhook
-
-### Database Migration
-- [ ] Migrasi dari SQLite ke PostgreSQL untuk skalabilitas lebih besar
+### Phase 12 — Integration, Deep Intel & Export
+- [ ] **PoC & Exploit Radar:** Cek API GitHub atau Nuclei secara otomatis untuk melihat apakah PoC publik sudah dirilis untuk CVE terkait.
+- [ ] **CISA KEV & EPSS Score:** Panggil NVD API otomatis untuk menarik status eksploitasi resmi.
+- [ ] **Custom RSS / Webhook Out:** Buat endpoint `/api/feed.xml` agar Threat Intel ini bisa di-ingest oleh SIEM atau bot pihak ketiga.
+- [ ] **Weekly Report:** Auto-generate PDF/CSV laporan ancaman keamanan mingguan.
+- [ ] **Multi-Channel Alerts:** Tambahkan support notifikasi Discord Webhook dan Email.
