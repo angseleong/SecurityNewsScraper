@@ -146,11 +146,11 @@ Gunakan file ini sebagai panduan kerja utama. **Jangan mulai tahap selanjutnya s
 ## BACKLOG — "Bloomberg for Bug Hunters" (Upcoming Phases)
 
 ### Phase 9 — AI Threat Intel & Pre-computed Summary
-- [ ] Setup `GEMINI_API_KEY` di `config.py` dan `.env`.
-- [ ] Update Skema DB: Tambah kolom `ai_summary`, `ai_mitigation`, `ai_attack_vector`, `ai_shodan_dork` di tabel `articles`.
-- [ ] Buat `extractor/ai_analyzer.py`: Integrasi `google-genai` dengan instruksi terstruktur untuk mengekstrak data spesifik dari teks kerentanan.
-- [ ] Integrasi Pipeline: Panggil AI Analyzer di `scheduler/jobs.py` saat artikel baru ditemukan.
-- [ ] Update UI: Tambahkan *Expandable Drawer/Modal* di kartu artikel untuk menampilkan hasil ekstraksi AI secara instan.
+- [x] Setup `GEMINI_API_KEY` di `config.py` dan `.env`.
+- [x] Update Skema DB: Tambah kolom `ai_summary`, `ai_mitigation`, `ai_attack_vector`, `ai_shodan_dork` di tabel `articles`.
+- [x] Buat `extractor/ai_analyzer.py`: Integrasi `google-genai` dengan instruksi terstruktur untuk mengekstrak data spesifik dari teks kerentanan.
+- [x] Integrasi Pipeline: Panggil AI Analyzer di `scheduler/jobs.py` saat artikel baru ditemukan.
+- [x] Update UI: Tambahkan *Expandable Drawer/Modal* di kartu artikel untuk menampilkan hasil ekstraksi AI secara instan.
 
 ### Phase 10 — Powerful Search & Filter
 - [ ] **Search by CVE / Vendor:** Modifikasi query database di `routes.py` agar pencarian bisa melacak CVE ID atau keyword vendor secara spesifik.

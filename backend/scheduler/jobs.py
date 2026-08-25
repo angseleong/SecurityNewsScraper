@@ -35,6 +35,16 @@ def scrape_all_sources() -> None:
                 article, is_new = save_article(processed)
                 if is_new and article:
                     save_cves(processed.cves, article.id, processed.severity, processed.affected_software)
+                    
+                    # ── AI Analysis ──
+                    from backend.extractor.ai_analyzer import analyze_article
+                    from backend.database.db import update_article_ai
+                    
+                    text_to_analyze = f"{raw.title}\n{raw.summary}\n{raw.full_text}"
+                    ai_data = analyze_article(text_to_analyze)
+                    if ai_data:
+                        update_article_ai(article.id, ai_data)
+                    
                     new += 1
                     
                     from backend.notifier.telegram import should_notify, send_alert

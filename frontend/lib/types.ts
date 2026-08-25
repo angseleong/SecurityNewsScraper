@@ -9,6 +9,10 @@ export interface Article {
   has_cve: boolean
   notified: boolean
   scraped_at: string
+  ai_summary: string | null
+  ai_mitigation: string | null
+  ai_attack_vector: string | null
+  ai_shodan_dork: string | null
 }
 
 export interface CVE {

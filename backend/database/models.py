@@ -20,6 +20,11 @@ class Article(Base):
     notified = Column(Boolean, default=False, nullable=False)
     scraped_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
+    ai_summary = Column(Text, nullable=True)
+    ai_mitigation = Column(Text, nullable=True)
+    ai_attack_vector = Column(Text, nullable=True)
+    ai_shodan_dork = Column(Text, nullable=True)
+
     cves = relationship("CVE", back_populates="article", cascade="all, delete-orphan")
     __table_args__ = (UniqueConstraint("url", name="uq_article_url"),)
 

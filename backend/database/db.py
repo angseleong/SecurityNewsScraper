@@ -65,6 +65,22 @@ def save_article(processed) -> tuple[Article | None, bool]:
     finally:
         session.close()
 
+def update_article_ai(article_id: int, ai_data: dict) -> None:
+    session = get_session()
+    try:
+        article = session.query(Article).get(article_id)
+        if article:
+            article.ai_summary = ai_data.get("summary")
+            article.ai_mitigation = ai_data.get("mitigation")
+            article.ai_attack_vector = ai_data.get("attack_vector")
+            article.ai_shodan_dork = ai_data.get("shodan_dork")
+            session.commit()
+    except Exception as e:
+        logger.error("Failed to update AI fields for article %d: %s", article_id, e)
+        session.rollback()
+    finally:
+        session.close()
+
 def save_cves(cves: list[str], article_id: int, severity: str, software: list[str]) -> None:
     """Save extracted CVEs linked to an article."""
     if not cves:

@@ -52,6 +52,10 @@ def register_routes(app: Flask) -> None:
                         "has_cve": a.has_cve,
                         "notified": a.notified,
                         "scraped_at": a.scraped_at.isoformat(),
+                        "ai_summary": a.ai_summary,
+                        "ai_mitigation": a.ai_mitigation,
+                        "ai_attack_vector": a.ai_attack_vector,
+                        "ai_shodan_dork": a.ai_shodan_dork,
                     }
                     for a in articles
                 ],
@@ -110,11 +114,10 @@ def register_routes(app: Flask) -> None:
             for sev, count in session.query(Article.severity, func.count(Article.id)).group_by(Article.severity).all():
                 severity_breakdown[sev or "info"] = count
 
-            # Incident Trends (Last 7 days approx, grouped by scraped_at DATE string representation in SQLite)
-            # In SQLite we can use strftime('%Y-%m-%d', scraped_at)
+            # Incident Trends (Last 7 days approx, grouped by published_at)
             incident_trends = []
             try:
-                date_func = func.strftime('%Y-%m-%d', Article.scraped_at)
+                date_func = func.strftime('%Y-%m-%d', func.coalesce(Article.published_at, Article.scraped_at))
                 trends_data = session.query(date_func.label('day'), func.count(Article.id)).group_by('day').order_by(date_func.desc()).limit(7).all()
                 for day, count in reversed(trends_data):
                     incident_trends.append({"date": day, "count": count})
