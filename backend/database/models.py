@@ -37,6 +37,10 @@ class CVE(Base):
     severity_hint = Column(String(20), nullable=True)
     affected_software = Column(Text, nullable=True)
     cvss_score = Column(Float, nullable=True)
+    
+    epss_score = Column(Float, nullable=True)
+    cisa_kev = Column(Boolean, default=False)
+    poc_url = Column(Text, nullable=True)
 
     article = relationship("Article", back_populates="cves")
 

@@ -34,23 +34,42 @@ def scrape_all_sources() -> None:
                 processed = process_article(raw)
                 article, is_new = save_article(processed)
                 if is_new and article:
-                    save_cves(processed.cves, article.id, processed.severity, processed.affected_software)
+                    cve_models = save_cves(processed.cves, article.id, processed.severity, processed.affected_software)
+                    if cve_models:
+                        from backend.database.db import get_session
+                        from backend.extractor.cve_enricher import enrich_cves_in_db
+                        s = get_session()
+                        try:
+                            # Refetch models in current session
+                            from backend.database.models import CVE
+                            cves_in_db = s.query(CVE).filter(CVE.id.in_([c.id for c in cve_models])).all()
+                            enrich_cves_in_db(s, cves_in_db)
+                        finally:
+                            s.close()
                     
                     # ── AI Analysis ──
+                    import time
                     from backend.extractor.ai_analyzer import analyze_article
                     from backend.database.db import update_article_ai
                     
                     text_to_analyze = f"{raw.title}\n{raw.summary}\n{raw.full_text}"
+                    
+                    # Be nice to Gemini (Free Tier = 15 RPM). Delay 4s per article.
+                    time.sleep(4)
+                    
                     ai_data = analyze_article(text_to_analyze)
                     if ai_data:
                         update_article_ai(article.id, ai_data)
                     
                     new += 1
                     
-                    from backend.notifier.telegram import should_notify, send_alert
+                    from backend.notifier.telegram import should_notify, send_alert as send_telegram
+                    from backend.notifier.discord import send_alert as send_discord
                     from backend.database.db import mark_notified
                     if should_notify(article):
-                        if send_alert(article, processed.cves):
+                        notified_tg = send_telegram(article, processed.cves)
+                        notified_dc = send_discord(article)
+                        if notified_tg or notified_dc:
                             mark_notified(article.id)
                 else:
                     skipped += 1

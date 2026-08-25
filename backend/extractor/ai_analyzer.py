@@ -33,7 +33,7 @@ def analyze_article(text: str) -> dict | None:
         """
 
         response = client.models.generate_content(
-            model='gemini-3.6-flash',
+            model='gemini-flash-lite-latest',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

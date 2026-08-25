@@ -38,10 +38,15 @@ export default function ArticleRow({ article }: { article: Article }) {
         </div>
 
         {/* Badges */}
-        <div className="flex items-center gap-2 w-full sm:w-32 shrink-0">
+        <div className="flex items-center gap-2 w-full sm:w-32 shrink-0 flex-wrap">
           <span className={`px-2 py-0.5 rounded uppercase text-[10px] tracking-widest font-black shadow-sm ${sevColor}`}>
             {article.severity ?? "INFO"}
           </span>
+          {article.watchlist_match && (
+            <span className="px-2 py-0.5 rounded uppercase text-[10px] tracking-widest font-black text-fuchsia-400 bg-fuchsia-950/40 border border-fuchsia-800/50 glow-text shadow-[0_0_8px_rgba(217,70,239,0.2)] animate-pulse">
+              TARGET
+            </span>
+          )}
           {article.has_cve && (
             <span className="px-2 py-0.5 rounded uppercase text-[10px] tracking-widest font-black text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 glow-text shadow-[0_0_8px_rgba(0,255,255,0.2)]">
               CVE
@@ -49,23 +54,47 @@ export default function ArticleRow({ article }: { article: Article }) {
           )}
         </div>
 
-        {/* Title */}
-        <div className="flex-1 min-w-0 pr-4 flex items-center gap-2">
-          {hasAiData && (
-            <span className="text-cyan-500">
-              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </span>
+        {/* Title & Related Sources */}
+        <div className="flex-1 min-w-0 pr-4 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            {hasAiData && (
+              <span className="text-cyan-500">
+                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </span>
+            )}
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-200 font-medium hover:text-cyan-400 transition-colors truncate block flex-1"
+              title={article.title}
+            >
+              {article.title}
+            </a>
+          </div>
+          
+          {/* Related Articles Grouping */}
+          {article.related_articles && article.related_articles.length > 0 && (
+            <div className="flex items-center gap-2 mt-0.5 ml-6">
+              <span className="text-[10px] text-gray-500 font-medium">Also reported by:</span>
+              <div className="flex flex-wrap gap-2">
+                {article.related_articles.map(rel => (
+                  <a 
+                    key={rel.id} 
+                    href={rel.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[10px] text-cyan-500/70 hover:text-cyan-400 truncate max-w-[120px]"
+                    title={rel.title}
+                  >
+                    {rel.source}
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-gray-200 font-medium hover:text-cyan-400 transition-colors truncate block flex-1"
-            title={article.title}
-          >
-            {article.title}
-          </a>
         </div>
 
         {/* Link Icon */}
@@ -133,6 +162,43 @@ export default function ArticleRow({ article }: { article: Article }) {
                 </div>
                 <div className="bg-purple-950/20 border border-purple-900/50 p-2 rounded text-purple-300 font-mono text-[10px]">
                   {article.ai_shodan_dork}
+                </div>
+              </div>
+            )}
+            
+            {/* CVE Enrichment Details */}
+            {article.cves_detail && article.cves_detail.length > 0 && (
+              <div className="col-span-1 md:col-span-2 space-y-2 mt-2 pt-3 border-t border-gray-800">
+                <div className="text-gray-500 font-bold text-[10px] tracking-widest uppercase">CVE Intelligence</div>
+                <div className="flex flex-col gap-2">
+                  {article.cves_detail.map((cve) => (
+                    <div key={cve.cve_id} className="flex flex-wrap items-center gap-3 bg-gray-900/50 border border-gray-800 p-2 rounded text-xs">
+                      <span className="font-bold text-gray-300">{cve.cve_id}</span>
+                      
+                      {cve.cisa_kev && (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black tracking-wider bg-red-900/50 text-red-400 border border-red-700/50">
+                          CISA KEV (ACTIVE)
+                        </span>
+                      )}
+                      
+                      {cve.epss_score !== null && (
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-wider border ${
+                          cve.epss_score > 0.5 ? 'bg-red-950 text-red-400 border-red-800' :
+                          cve.epss_score > 0.1 ? 'bg-orange-950 text-orange-400 border-orange-800' :
+                          'bg-gray-900 text-gray-400 border-gray-700'
+                        }`}>
+                          EPSS: {(cve.epss_score * 100).toFixed(1)}%
+                        </span>
+                      )}
+                      
+                      {cve.poc_url && (
+                        <a href={cve.poc_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[9px] font-bold tracking-wider text-pink-400 hover:text-pink-300 ml-auto">
+                          <span>PoC FOUND</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

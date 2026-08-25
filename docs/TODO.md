@@ -153,21 +153,21 @@ Gunakan file ini sebagai panduan kerja utama. **Jangan mulai tahap selanjutnya s
 - [x] Update UI: Tambahkan *Expandable Drawer/Modal* di kartu artikel untuk menampilkan hasil ekstraksi AI secara instan.
 
 ### Phase 10 — Powerful Search & Filter
-- [ ] **Search by CVE / Vendor:** Modifikasi query database di `routes.py` agar pencarian bisa melacak CVE ID atau keyword vendor secara spesifik.
-- [ ] **Toggle Filter:** Tambahkan tombol cepat "Only with CVEs" dan "Critical Only" di UI Next.js.
-- [ ] **Date Filter:** Tambahkan dropdown filter waktu (Today, This Week, All Time).
-- [ ] **Scope Matcher (Watchlist):** Fitur untuk mendaftarkan aset target. Notifikasi diprioritaskan jika ada kerentanan di aset tersebut.
+- [x] **Search by CVE / Vendor:** Modifikasi query database di `routes.py` agar pencarian bisa melacak CVE ID atau keyword vendor secara spesifik.
+- [x] **Toggle Filter:** Tambahkan tombol cepat "Only with CVEs" dan "Critical Only" di UI Next.js.
+- [x] **Date Filter:** Tambahkan dropdown filter waktu (Today, This Week, All Time).
+- [x] **Scope Matcher (Watchlist):** Fitur untuk mendaftarkan aset target. Notifikasi diprioritaskan jika ada kerentanan di aset tersebut.
 
 ### Phase 11 — Analytics, Visualisasi Data & Terminal UI
 - [x] **Bloomberg Terminal UI:** Rombak desain Next.js menjadi *dense data grid* dengan tema gelap, *glassmorphism*, dan indikator warna yang lebih mencolok.
 - [x] **Top Affected Software:** Buat *Tag Cloud* atau *list* vendor yang paling banyak diserang minggu ini.
 - [x] **Incident Trends Chart:** Pasang Chart.js/Recharts untuk grafik batang/garis tren kerentanan baru.
 - [x] **CVE Explorer View:** Halaman khusus (`/cves`) untuk melihat daftar semua CVE beserta status eksploitasinya.
-- [ ] **Incident Grouping:** Gabungkan berita kerentanan yang sama dari berbagai sumber menjadi 1 insiden di UI.
+- [x] **Incident Grouping:** Gabungkan berita kerentanan yang sama dari berbagai sumber menjadi 1 insiden di UI.
 
 ### Phase 12 — Integration, Deep Intel & Export
-- [ ] **PoC & Exploit Radar:** Cek API GitHub atau Nuclei secara otomatis untuk melihat apakah PoC publik sudah dirilis untuk CVE terkait.
-- [ ] **CISA KEV & EPSS Score:** Panggil NVD API otomatis untuk menarik status eksploitasi resmi.
-- [ ] **Custom RSS / Webhook Out:** Buat endpoint `/api/feed.xml` agar Threat Intel ini bisa di-ingest oleh SIEM atau bot pihak ketiga.
-- [ ] **Weekly Report:** Auto-generate PDF/CSV laporan ancaman keamanan mingguan.
-- [ ] **Multi-Channel Alerts:** Tambahkan support notifikasi Discord Webhook dan Email.
+- [x] **PoC & Exploit Radar:** Cek API GitHub atau Nuclei secara otomatis untuk melihat apakah PoC publik sudah dirilis untuk CVE terkait.
+- [x] **CISA KEV & EPSS Score:** Panggil NVD API otomatis untuk menarik status eksploitasi resmi.
+- [x] **Custom RSS / Webhook Out:** Buat endpoint `/api/feed.xml` agar Threat Intel ini bisa di-ingest oleh SIEM atau bot pihak ketiga.
+- [x] **Weekly Report:** Auto-generate PDF/CSV laporan ancaman keamanan mingguan.
+- [x] **Multi-Channel Alerts:** Tambahkan support notifikasi Discord Webhook dan Email.

@@ -24,6 +24,9 @@ export default function Dashboard() {
   const [search, setSearch] = useState("")
   const [severity, setSeverity] = useState("")
   const [source, setSource] = useState("")
+  const [timeRange, setTimeRange] = useState("")
+  const [hasCve, setHasCve] = useState(false)
+  const [criticalOnly, setCriticalOnly] = useState(false)
   const [loading, setLoading] = useState(true)
   const [scraping, setScraping] = useState(false)
 
@@ -34,6 +37,8 @@ export default function Dashboard() {
       if (search) params.q = search
       if (severity) params.severity = severity
       if (source) params.source = source
+      if (timeRange) params.time_range = timeRange
+      if (hasCve) params.has_cve = "true"
       const data = await fetchArticles(params)
       setArticles(data.articles)
       setTotal(data.total)
@@ -43,7 +48,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, severity, source])
+  }, [page, search, severity, source, timeRange, hasCve])
 
   const loadStats = useCallback(async () => {
     try {
@@ -53,7 +58,7 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => { loadStats() }, [loadStats])
-  useEffect(() => { setPage(1) }, [search, severity, source])
+  useEffect(() => { setPage(1) }, [search, severity, source, timeRange, hasCve])
   useEffect(() => { loadArticles() }, [loadArticles])
 
   const handleScrape = async () => {
@@ -206,9 +211,15 @@ export default function Dashboard() {
               search={search}
               severity={severity}
               source={source}
+              timeRange={timeRange}
+              hasCve={hasCve}
+              criticalOnly={criticalOnly}
               onSearch={setSearch}
               onSeverity={setSeverity}
               onSource={setSource}
+              onTimeRange={setTimeRange}
+              onHasCve={setHasCve}
+              onCriticalOnly={setCriticalOnly}
               onScrape={handleScrape}
               scraping={scraping}
             />

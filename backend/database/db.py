@@ -81,23 +81,30 @@ def update_article_ai(article_id: int, ai_data: dict) -> None:
     finally:
         session.close()
 
-def save_cves(cves: list[str], article_id: int, severity: str, software: list[str]) -> None:
+def save_cves(cves: list[str], article_id: int, severity: str, software: list[str]) -> list[CVE]:
     """Save extracted CVEs linked to an article."""
     if not cves:
-        return
+        return []
     session = get_session()
+    created = []
     try:
         for cve_id in cves:
-            session.add(CVE(
+            c = CVE(
                 cve_id=cve_id,
                 article_id=article_id,
                 severity_hint=severity,
                 affected_software=", ".join(software) if software else None,
-            ))
+            )
+            session.add(c)
+            created.append(c)
         session.commit()
+        for c in created:
+            session.refresh(c)
+        return created
     except Exception as exc:
         session.rollback()
         logger.error("Failed to save CVEs for article_id=%s: %s", article_id, exc)
+        return []
     finally:
         session.close()
 

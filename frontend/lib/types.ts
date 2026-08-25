@@ -13,6 +13,19 @@ export interface Article {
   ai_mitigation: string | null
   ai_attack_vector: string | null
   ai_shodan_dork: string | null
+  watchlist_match?: boolean
+  cves_detail?: {
+    cve_id: string
+    epss_score: number | null
+    cisa_kev: boolean
+    poc_url: string | null
+  }[]
+  related_articles?: {
+    id: number
+    title: string
+    source: string
+    url: string
+  }[]
 }
 
 export interface CVE {

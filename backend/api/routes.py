@@ -15,6 +15,8 @@ def register_routes(app: Flask) -> None:
 
     @app.get("/api/articles")
     def get_articles():
+        from datetime import datetime, timedelta, timezone
+        from backend import config
         session = get_session()
         try:
             q = session.query(Article)
@@ -23,6 +25,7 @@ def register_routes(app: Flask) -> None:
             severity = request.args.get("severity")
             has_cve = request.args.get("has_cve")
             search = request.args.get("q")
+            time_range = request.args.get("time_range")
             page = max(1, int(request.args.get("page", 1)))
             per_page = 20
 
@@ -32,16 +35,90 @@ def register_routes(app: Flask) -> None:
                 q = q.filter(Article.severity == severity)
             if has_cve is not None:
                 q = q.filter(Article.has_cve == (has_cve.lower() == "true"))
+            
+            if time_range:
+                now = datetime.now(timezone.utc)
+                if time_range == "today":
+                    threshold = now - timedelta(days=1)
+                    q = q.filter((Article.published_at >= threshold) | (Article.scraped_at >= threshold))
+                elif time_range == "week":
+                    threshold = now - timedelta(days=7)
+                    q = q.filter((Article.published_at >= threshold) | (Article.scraped_at >= threshold))
+
             if search:
                 like = f"%{search}%"
-                q = q.filter(Article.title.ilike(like) | Article.summary.ilike(like))
+                from sqlalchemy import or_
+                # Subquery to check if there's any related CVE matching the search
+                has_matching_cve = session.query(CVE.article_id).filter(
+                    or_(
+                        CVE.cve_id.ilike(like),
+                        CVE.affected_software.ilike(like)
+                    )
+                ).subquery()
+                
+                q = q.filter(
+                    or_(
+                        Article.title.ilike(like),
+                        Article.summary.ilike(like),
+                        Article.ai_summary.ilike(like),
+                        Article.ai_mitigation.ilike(like),
+                        Article.ai_attack_vector.ilike(like),
+                        Article.id.in_(has_matching_cve)
+                    )
+                )
 
             total = q.count()
-            articles = q.order_by(Article.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+            articles = q.order_by(Article.published_at.desc(), Article.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
 
-            return jsonify({
-                "articles": [
-                    {
+            def is_watchlist(a: Article) -> bool:
+                text_to_check = f"{a.title} {a.summary or ''} {a.ai_summary or ''}".lower()
+                for kw in config.ALERT_KEYWORDS:
+                    if kw.lower() in text_to_check:
+                        return True
+                return False
+
+            result_articles = []
+            if articles:
+                article_ids = [a.id for a in articles]
+                cves_list = session.query(CVE).filter(CVE.article_id.in_(article_ids)).all()
+                cves_by_article = {}
+                cve_ids_found = set()
+                for c in cves_list:
+                    cves_by_article.setdefault(c.article_id, []).append(c)
+                    cve_ids_found.add(c.cve_id)
+                
+                related_articles_by_cve = {}
+                if cve_ids_found:
+                    from sqlalchemy import and_
+                    related_cves = session.query(CVE).filter(
+                        CVE.cve_id.in_(cve_ids_found),
+                        CVE.article_id.notin_(article_ids)
+                    ).all()
+                    
+                    related_article_ids = list(set(c.article_id for c in related_cves))
+                    if related_article_ids:
+                        related_arts = session.query(Article).filter(Article.id.in_(related_article_ids)).all()
+                        arts_by_id = {a.id: a for a in related_arts}
+                        for c in related_cves:
+                            if c.article_id in arts_by_id:
+                                related_articles_by_cve.setdefault(c.cve_id, []).append(arts_by_id[c.article_id])
+
+                for a in articles:
+                    a_cves = cves_by_article.get(a.id, [])
+                    related = []
+                    seen_related_ids = set()
+                    for c in a_cves:
+                        for rel_a in related_articles_by_cve.get(c.cve_id, []):
+                            if rel_a.id not in seen_related_ids:
+                                seen_related_ids.add(rel_a.id)
+                                related.append({
+                                    "id": rel_a.id,
+                                    "title": rel_a.title,
+                                    "source": rel_a.source,
+                                    "url": rel_a.url
+                                })
+                                
+                    result_articles.append({
                         "id": a.id,
                         "source": a.source,
                         "title": a.title,
@@ -56,9 +133,20 @@ def register_routes(app: Flask) -> None:
                         "ai_mitigation": a.ai_mitigation,
                         "ai_attack_vector": a.ai_attack_vector,
                         "ai_shodan_dork": a.ai_shodan_dork,
-                    }
-                    for a in articles
-                ],
+                        "watchlist_match": is_watchlist(a),
+                        "cves_detail": [
+                            {
+                                "cve_id": c.cve_id,
+                                "epss_score": c.epss_score,
+                                "cisa_kev": c.cisa_kev,
+                                "poc_url": c.poc_url,
+                            } for c in a_cves
+                        ],
+                        "related_articles": related,
+                    })
+
+            return jsonify({
+                "articles": result_articles,
                 "total": total,
                 "page": page,
                 "per_page": per_page,
@@ -164,4 +252,73 @@ def register_routes(app: Flask) -> None:
         thread.start()
         logger.info("Manual scrape triggered via API")
         return jsonify({"status": "triggered", "message": "Scrape started in background."})
+
+    @app.get("/api/feed.xml")
+    def get_rss_feed():
+        from flask import make_response
+        from datetime import datetime, timedelta, timezone
+        from xml.sax.saxutils import escape
+        
+        session = get_session()
+        try:
+            threshold = datetime.now(timezone.utc) - timedelta(days=7)
+            articles = session.query(Article).filter(Article.published_at >= threshold).order_by(Article.published_at.desc()).limit(100).all()
+            
+            items = []
+            for a in articles:
+                pub_date = (a.published_at or a.scraped_at).strftime("%a, %d %b %Y %H:%M:%S GMT")
+                desc = escape(a.summary or a.ai_summary or "")
+                items.append(f"""
+    <item>
+      <title>{escape(a.title)}</title>
+      <link>{escape(a.url)}</link>
+      <description>{desc}</description>
+      <pubDate>{pub_date}</pubDate>
+      <guid>{escape(a.url)}</guid>
+    </item>""")
+            
+            rss_xml = f"""<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Security News Scraper Intel</title>
+    <link>http://localhost:3000</link>
+    <description>Latest cybersecurity threats and vulnerabilities.</description>
+    {''.join(items)}
+  </channel>
+</rss>"""
+            response = make_response(rss_xml)
+            response.headers["Content-Type"] = "application/rss+xml"
+            return response
+        finally:
+            session.close()
+
+    @app.get("/api/report/weekly.csv")
+    def get_weekly_csv():
+        from flask import make_response
+        from datetime import datetime, timedelta, timezone
+        import csv
+        import io
+        
+        session = get_session()
+        try:
+            threshold = datetime.now(timezone.utc) - timedelta(days=7)
+            articles = session.query(Article).filter(Article.published_at >= threshold).order_by(Article.published_at.desc()).all()
+            
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["ID", "Source", "Title", "URL", "Severity", "Has CVE", "Published At", "AI Summary"])
+            
+            for a in articles:
+                writer.writerow([
+                    a.id, a.source, a.title, a.url, a.severity, a.has_cve,
+                    a.published_at.isoformat() if a.published_at else "",
+                    a.ai_summary or ""
+                ])
+                
+            response = make_response(output.getvalue())
+            response.headers["Content-Disposition"] = "attachment; filename=weekly_report.csv"
+            response.headers["Content-type"] = "text/csv"
+            return response
+        finally:
+            session.close()
 
