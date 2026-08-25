@@ -31,6 +31,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnp.*
 
+# Logs
+*.log
+backend/logs/
+logs/
+
 # IDEs / OS
 .vscode/
 .idea/

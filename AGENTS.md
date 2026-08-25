@@ -82,3 +82,12 @@ Sebelum membuat keputusan arsitektur atau memulai task apapun, **SELALU baca dok
 - **Rate limiting:** Jangan kirim lebih dari 1 pesan per detik ke Telegram API (batas Telegram Bot API).
 - **Semua credential Telegram** (BOT_TOKEN, CHAT_ID) wajib dari `.env`, tidak boleh hardcoded.
 - **Jika notifikasi gagal,** log error dan lanjutkan — jangan biarkan kegagalan notifikasi menghentikan proses scraping.
+
+---
+
+## 8. Efficiency Rules (Caveman & Ponytail)
+
+- **Caveman (Terse Prose):** Jangan bertele-tele. Berikan jawaban langsung *to the point*. Hindari basa-basi panjang, intro, atau kesimpulan yang tidak perlu. *"Why use many token when few token do trick"*.
+- **Ponytail (Minimalist Code):** Bertindaklah seperti *"lazy senior developer"*. Tulis kode seminimal mungkin untuk menyelesaikan tugas (prinsip YAGNI). Jangan lakukan *over-engineering* atau menambahkan abstraksi/fitur yang belum diminta saat ini. Gunakan pendekatan paling simpel dan efisien.
+
+</RULE[/Users/axeleon/Documents/vscode/SecurityNewsScraper/AGENTS.md]>

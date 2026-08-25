@@ -1,48 +1,136 @@
-"""
-api/routes.py — REST API route definitions for SecurityNewsScraper.
-All endpoints return JSON and are consumed by the Next.js frontend.
-"""
-
 import logging
-from flask import Flask, jsonify
+import threading
+from flask import Flask, jsonify, request
+from backend.database.db import get_session, init_db
+from backend.database.models import Article, CVE, ScrapeLog
 
 logger = logging.getLogger(__name__)
 
 
 def register_routes(app: Flask) -> None:
-    """Register all API routes on the Flask app."""
 
     @app.get("/api/health")
     def health():
-        """Health check endpoint."""
         return jsonify({"status": "ok", "service": "SecurityNewsScraper"})
 
-    # ── Articles ───────────────────────────────────────────────────────────────
     @app.get("/api/articles")
     def get_articles():
-        """Return paginated list of articles. (stub — Phase 5)"""
-        return jsonify({"articles": [], "total": 0})
+        session = get_session()
+        try:
+            q = session.query(Article)
 
-    # ── CVEs ───────────────────────────────────────────────────────────────────
+            source = request.args.get("source")
+            severity = request.args.get("severity")
+            has_cve = request.args.get("has_cve")
+            search = request.args.get("q")
+            page = max(1, int(request.args.get("page", 1)))
+            per_page = 20
+
+            if source:
+                q = q.filter(Article.source == source)
+            if severity:
+                q = q.filter(Article.severity == severity)
+            if has_cve is not None:
+                q = q.filter(Article.has_cve == (has_cve.lower() == "true"))
+            if search:
+                like = f"%{search}%"
+                q = q.filter(Article.title.ilike(like) | Article.summary.ilike(like))
+
+            total = q.count()
+            articles = q.order_by(Article.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+            return jsonify({
+                "articles": [
+                    {
+                        "id": a.id,
+                        "source": a.source,
+                        "title": a.title,
+                        "url": a.url,
+                        "published_at": a.published_at.isoformat() if a.published_at else None,
+                        "summary": a.summary,
+                        "severity": a.severity,
+                        "has_cve": a.has_cve,
+                        "notified": a.notified,
+                        "scraped_at": a.scraped_at.isoformat(),
+                    }
+                    for a in articles
+                ],
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "pages": (total + per_page - 1) // per_page,
+            })
+        finally:
+            session.close()
+
     @app.get("/api/cves")
     def get_cves():
-        """Return list of detected CVEs. (stub — Phase 5)"""
-        return jsonify({"cves": [], "total": 0})
+        session = get_session()
+        try:
+            q = session.query(CVE)
 
-    # ── Stats ──────────────────────────────────────────────────────────────────
+            search = request.args.get("q")
+            severity = request.args.get("severity")
+            if search:
+                q = q.filter(CVE.cve_id.ilike(f"%{search}%"))
+            if severity:
+                q = q.filter(CVE.severity_hint == severity)
+
+            cves = q.order_by(CVE.id.desc()).limit(200).all()
+            return jsonify({
+                "cves": [
+                    {
+                        "id": c.id,
+                        "cve_id": c.cve_id,
+                        "article_id": c.article_id,
+                        "severity_hint": c.severity_hint,
+                        "affected_software": c.affected_software,
+                        "cvss_score": c.cvss_score,
+                    }
+                    for c in cves
+                ],
+                "total": q.count(),
+            })
+        finally:
+            session.close()
+
     @app.get("/api/stats")
     def get_stats():
-        """Return aggregate statistics for the dashboard. (stub — Phase 5)"""
-        return jsonify({
-            "total_articles": 0,
-            "total_cves": 0,
-            "sources": {},
-            "severity_breakdown": {},
-        })
+        session = get_session()
+        try:
+            total_articles = session.query(Article).count()
+            total_cves = session.query(CVE).count()
 
-    # ── Manual Scrape Trigger ──────────────────────────────────────────────────
+            sources = {}
+            from sqlalchemy import func
+            for source, count in session.query(Article.source, func.count(Article.id)).group_by(Article.source).all():
+                sources[source] = count
+
+            severity_breakdown = {}
+            for sev, count in session.query(Article.severity, func.count(Article.id)).group_by(Article.severity).all():
+                severity_breakdown[sev or "info"] = count
+
+            last_log = session.query(ScrapeLog).order_by(ScrapeLog.finished_at.desc()).first()
+
+            return jsonify({
+                "total_articles": total_articles,
+                "total_cves": total_cves,
+                "sources": sources,
+                "severity_breakdown": severity_breakdown,
+                "last_scrape": last_log.finished_at.isoformat() if last_log and last_log.finished_at else None,
+            })
+        finally:
+            session.close()
+
     @app.post("/api/scrape")
     def trigger_scrape():
-        """Manually trigger a scraping run. (stub — Phase 5)"""
+        def _run():
+            from backend.scheduler.jobs import scrape_all_sources
+            init_db()
+            scrape_all_sources()
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
         logger.info("Manual scrape triggered via API")
         return jsonify({"status": "triggered", "message": "Scrape started in background."})
+
