@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 
 def register_routes(app: Flask) -> None:
 
+    @app.get("/")
+    def index():
+        return jsonify({"status": "SecurityNewsScraper API is running", "endpoints": ["/api/articles", "/api/cves", "/api/stats"]})
+
     @app.get("/api/health")
     def health():
         return jsonify({"status": "ok", "service": "SecurityNewsScraper"})
