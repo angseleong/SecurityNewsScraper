@@ -47,20 +47,37 @@ Configure critical keywords (e.g., "Windows Server", "OpenSSL") in your Watchlis
 
 Designed for high concurrency and production readiness, SNS separates the data ingestion pipeline from the API layer.
 
-```mermaid
-graph LR
-    subgraph Data Ingestion
-        W[Background Worker] --> |Scrapes RSS| Web(News Sources)
-        W --> |Analyzes Text| AI(Gemini AI)
-        W --> |Writes WAL| DB[(SQLite)]
-        W --> |Alerts| TG(Telegram)
-    end
-    
-    subgraph Serving Layer
-        API[Flask REST API] --> |Reads| DB
-        UI[Next.js Frontend] --> |Fetches| API
-    end
+```text
+[ Threat Intel Sources (RSS/Web) ]
+          │
+          ▼
+┌─────────────────────────┐
+│   Background Worker     │  ← APScheduler Daemon
+│   (Scraper Engine)      │
+└──────────┬──────────────┘
+           │  raw article text
+           ▼
+┌─────────────────────────┐
+│   Gemini AI Engine      │  ← Mitigation & CVE Extraction
+└──────────┬──────────────┘
+           │  structured data + severity
+           ▼
+┌─────────────────────────┐
+│     SQLite Database     │  ← WAL Mode (High Concurrency)
+└──────────┬──────────────┘
+           │
+┌─────────┐  ┌──────────────┐
+│ Next.js │  │  Telegram    │
+│ Frontend│  │  Alerts      │
+└─────────┘  └──────────────┘
+     ▲             ▲
+     │ API Request │
+┌─────────────┐    │
+│  Flask REST │ ───┘
+│    API      │
+└─────────────┘
 ```
+
 
 - **Resilient AI**: Built-in exponential backoff ensures zero crashes even if the AI API hits rate limits.
 - **SQLite WAL**: Write-Ahead Logging allows the background worker to write massive amounts of data without locking the database for the frontend users.
