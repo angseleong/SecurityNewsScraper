@@ -26,13 +26,10 @@ export default function ArticleRow({ article }: { article: Article }) {
       {/* Row */}
       <div
         onClick={() => hasAi && setOpen(!open)}
-        className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 px-5 py-3 transition-colors duration-150 relative ${hasAi ? 'cursor-pointer' : ''}`}
-        style={{ backgroundColor: 'transparent' }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#151617')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 px-5 py-3 transition-all duration-300 relative overflow-hidden ${hasAi ? 'cursor-pointer hover:bg-[#151617]' : ''}`}
       >
-        {/* Accent bar */}
-        <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: '#34d59a' }} />
+        {/* Accent bar with glow */}
+        <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundColor: '#34d59a', boxShadow: '0 0 12px 3px rgba(52,213,154,0.6)' }} />
 
         {/* Time & Source */}
         <div className="flex items-center gap-3 w-full sm:w-48 shrink-0">
@@ -42,16 +39,16 @@ export default function ArticleRow({ article }: { article: Article }) {
 
         {/* Badges */}
         <div className="flex items-center gap-2 w-full sm:w-36 shrink-0 flex-wrap">
-          <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-bold" style={{ ...mono, color: sev.color, backgroundColor: sev.bg, border: `1px solid ${sev.border}` }}>
+          <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wide font-bold" style={{ ...mono, color: sev.color, backgroundColor: sev.bg, border: `1px solid ${sev.border}` }}>
             {article.severity ?? 'INFO'}
           </span>
           {article.watchlist_match && (
-            <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-bold animate-pulse" style={{ ...mono, color: '#ff3621', backgroundColor: 'rgba(255,54,33,0.1)', border: '1px solid rgba(255,54,33,0.3)' }}>
+            <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wide font-bold animate-pulse" style={{ ...mono, color: '#ff3621', backgroundColor: 'rgba(255,54,33,0.1)', border: '1px solid rgba(255,54,33,0.3)' }}>
               TARGET
             </span>
           )}
           {article.has_cve && (
-            <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-bold" style={{ ...mono, color: '#34d59a', backgroundColor: 'rgba(52,213,154,0.1)', border: '1px solid rgba(52,213,154,0.3)' }}>
+            <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wide font-bold" style={{ ...mono, color: '#34d59a', backgroundColor: 'rgba(52,213,154,0.1)', border: '1px solid rgba(52,213,154,0.3)' }}>
               CVE
             </span>
           )}
@@ -102,7 +99,7 @@ export default function ArticleRow({ article }: { article: Article }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {article.ai_summary && (
               <div>
-                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#34d59a', ...mono }}>
+                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#34d59a', ...mono }}>
                   <BrainCircuit size={14} /> TL;DR
                 </div>
                 <p className="text-[13px] leading-relaxed" style={{ color: '#94979e' }}>{article.ai_summary}</p>
@@ -110,7 +107,7 @@ export default function ArticleRow({ article }: { article: Article }) {
             )}
             {article.ai_mitigation && (
               <div>
-                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#ffffff', ...mono }}>
+                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#ffffff', ...mono }}>
                   <Shield size={14} /> Mitigation
                 </div>
                 <p className="text-[13px] leading-relaxed" style={{ color: '#94979e' }}>{article.ai_mitigation}</p>
@@ -118,7 +115,7 @@ export default function ArticleRow({ article }: { article: Article }) {
             )}
             {article.ai_attack_vector && (
               <div>
-                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#ff3621', ...mono }}>
+                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#ff3621', ...mono }}>
                   <Crosshair size={14} /> Attack Vector
                 </div>
                 <p className="text-[13px] leading-relaxed" style={{ color: '#94979e' }}>{article.ai_attack_vector}</p>
@@ -126,7 +123,7 @@ export default function ArticleRow({ article }: { article: Article }) {
             )}
             {article.ai_shodan_dork && (
               <div>
-                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#a855f7', ...mono }}>
+                <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#a855f7', ...mono }}>
                   <Search size={14} /> Shodan Dork
                 </div>
                 <div className="p-2.5 rounded text-[12px]" style={{ ...mono, backgroundColor: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)', color: '#d8b4fe', borderRadius: 4 }}>
@@ -138,7 +135,7 @@ export default function ArticleRow({ article }: { article: Article }) {
             {/* CVE Enrichment */}
             {article.cves_detail && article.cves_detail.length > 0 && (
               <div className="col-span-1 md:col-span-2 mt-3 pt-4" style={{ borderTop: '1px solid #242628' }}>
-                <div className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: '#797d86', ...mono }}>CVE Intelligence</div>
+                <div className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: '#797d86', ...mono }}>CVE Intelligence</div>
                 <div className="flex flex-col gap-2">
                   {article.cves_detail.map(cve => (
                     <div key={cve.cve_id} className="flex flex-wrap items-center gap-3 p-2.5 rounded text-xs" style={{ backgroundColor: '#151617', border: '1px solid #303236', borderRadius: 4 }}>

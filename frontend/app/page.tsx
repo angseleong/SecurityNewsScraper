@@ -1,128 +1,131 @@
+"use client";
+
 import Link from "next/link";
+import { BrainCircuit, ShieldAlert, Bell } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export default function LandingPage() {
-  return (
-    <main className="relative min-h-[calc(100vh-56px)] w-full overflow-hidden" style={{ backgroundColor: '#000000' }}>
+  const containerRef = useRef<HTMLElement>(null);
 
-      {/* Background: Abstract vertical lines — data stream aesthetic */}
-      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden select-none">
-        {/* Central bright line */}
-        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2" style={{ backgroundColor: '#34d59a', opacity: 0.15, boxShadow: '0 0 40px 4px rgba(52,213,154,0.15)' }} />
-        {/* Offset lines */}
-        {[80, 160, 260, 380].map((offset, i) => (
-          <div key={`l${i}`}>
-            <div className="absolute top-0 h-full w-px" style={{ left: `calc(50% - ${offset}px)`, backgroundColor: '#34d59a', opacity: 0.04 + i * 0.01 }} />
-            <div className="absolute top-0 h-full w-px" style={{ left: `calc(50% + ${offset}px)`, backgroundColor: '#34d59a', opacity: 0.04 + i * 0.01 }} />
-          </div>
-        ))}
-        {/* Animated scanline */}
-        <div className="absolute left-0 w-full h-px animate-scanline" style={{ background: 'linear-gradient(90deg, transparent, rgba(52,213,154,0.15), transparent)' }} />
-        {/* Radial glow at center */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(52,213,154,0.06) 0%, transparent 70%)' }} />
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (containerRef.current) {
+        // Adjust for any scroll or offset if needed, but clientX/Y works well for fixed/viewport
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        containerRef.current.style.setProperty('--mouse-x', `${x}px`);
+        containerRef.current.style.setProperty('--mouse-y', `${y}px`);
+      }
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <main 
+      ref={containerRef}
+      className="relative min-h-[calc(100vh-56px)] w-full overflow-hidden" 
+      style={{ backgroundColor: '#000000' }}
+    >
+
+      {/* Dynamic Modern Background */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none">
+        {/* Subtle grid pattern - Revealed by mouse */}
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ 
+            backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+            maskImage: 'radial-gradient(400px circle at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 0%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(400px circle at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 0%, transparent 100%)',
+          }} 
+        />
+        {/* Mouse Glow Orb */}
+        <div 
+          className="absolute w-[800px] h-[800px] rounded-full mix-blend-screen blur-[120px]" 
+          style={{ 
+            background: 'rgba(52,213,154,0.12)',
+            transform: 'translate(calc(var(--mouse-x, 50vw) - 400px), calc(var(--mouse-y, 50vh) - 400px))',
+            willChange: 'transform',
+          }} 
+        />
+        {/* Ambient glow 2 (Static background base) */}
+        <div 
+          className="absolute right-[20%] bottom-[10%] w-[600px] h-[600px] rounded-full mix-blend-screen blur-[120px]" 
+          style={{ background: 'rgba(29,78,216,0.06)' }} 
+        />
+        {/* Vignette to blend everything smoothly */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] via-transparent to-[#000000]" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto flex max-w-[1200px] flex-col items-center px-6 pt-32 pb-20 text-center" style={{ gap: '32px' }}>
-
-        {/* Status badge */}
-        <div className="animate-float-up flex items-center gap-2 rounded-full px-4 py-1.5" style={{ border: '1px solid #303236', backgroundColor: '#151617' }}>
-          <span className="h-2 w-2 rounded-full animate-glow-pulse" style={{ backgroundColor: '#34d59a' }} />
-          <span className={`text-xs font-medium tracking-widest uppercase`} style={{ color: '#797d86', fontFamily: 'var(--font-fira-code), monospace', letterSpacing: '0.1em' }}>
-            System Online · Monitoring 4 Targets
-          </span>
-        </div>
+      <div className="relative z-10 mx-auto flex max-w-[1200px] flex-col items-center px-6 pt-32 pb-20 text-center space-y-6">
 
         {/* Headline */}
-        <h1
-          className="animate-float-up-delay max-w-4xl font-medium"
-          style={{
-            fontSize: 'clamp(40px, 6vw, 80px)',
-            lineHeight: 1,
-            letterSpacing: '-3.2px',
-            color: '#ffffff',
-          }}
-        >
-          Automated Threat Intel.{' '}
-          <br />
-          <span style={{ color: '#34d59a' }}>Zero Noise.</span>
+        <h1 className="animate-float-up-delay max-w-4xl text-5xl md:text-7xl font-bold tracking-tight text-white">
+          Security News Scraper
         </h1>
 
         {/* Subtitle */}
-        <p
-          className="animate-float-up-delay-2 max-w-xl"
-          style={{
-            fontSize: '18px',
-            lineHeight: 1.6,
-            letterSpacing: '-0.36px',
-            color: '#797d86',
-          }}
-        >
-          Monitors global vulnerability disclosures, evaluates exploit probability via EPSS, and delivers AI-analyzed intel before a threat becomes a breach.
+        <p className="animate-float-up-delay-2 max-w-xl text-lg text-zinc-400 leading-relaxed">
+          Aggregates cybersecurity news, extracts CVEs, evaluates exploit probability via EPSS, and summarizes articles.
         </p>
 
         {/* CTA Buttons */}
-        <div className="animate-float-up-delay-2 flex items-center gap-4 mt-4">
+        <div className="animate-float-up-delay-2 flex items-center gap-4 pt-4">
           <Link
             href="/radar"
-            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105"
-            style={{
-              backgroundColor: '#ffffff',
-              color: '#151617',
-              borderRadius: '9999px',
-              padding: '14px 32px',
-              fontSize: '15px',
-              letterSpacing: '-0.4px',
-            }}
+            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105 rounded-full px-8 py-3.5 bg-white text-black text-sm"
           >
-            Enter Terminal →
+            View Dashboard
           </Link>
           <a
             href="https://github.com/angseleong/SecurityNewsScraper"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105"
-            style={{
-              backgroundColor: 'transparent',
-              color: '#ffffff',
-              border: '1px solid #303236',
-              borderRadius: '9999px',
-              padding: '14px 24px',
-              fontSize: '15px',
-              letterSpacing: '-0.4px',
-            }}
+            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105 rounded-full px-6 py-3.5 border border-[#303236] text-white text-sm"
           >
-            View Source
+            GitHub
           </a>
         </div>
 
         {/* Feature Pills */}
         <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
-          {[
-            { icon: '◉', label: 'AI Analysis', desc: 'Gemini-powered TLDR, attack vectors, and mitigation for every article.' },
-            { icon: '◈', label: 'CVE Enrichment', desc: 'Automatic EPSS scoring, CISA KEV lookup, and GitHub PoC discovery.' },
-            { icon: '◎', label: 'Real-time Alerts', desc: 'Instant Telegram & Discord notifications for critical threats.' },
-          ].map((feature) => (
-            <div
-              key={feature.label}
-              className="rounded text-left p-6 transition-colors duration-200"
-              style={{
-                backgroundColor: '#151617',
-                border: '1px solid #303236',
-                borderRadius: '4px',
-              }}
-            >
-              <div className="text-lg mb-3" style={{ color: '#34d59a' }}>{feature.icon}</div>
-              <h3 className="text-sm font-semibold mb-1.5" style={{ color: '#ffffff', letterSpacing: '-0.3px' }}>
-                {feature.label}
-              </h3>
-              <p className="text-xs leading-relaxed" style={{ color: '#797d86' }}>
-                {feature.desc}
-              </p>
-            </div>
-          ))}
+          <FeatureCard 
+            icon={<BrainCircuit size={20} />}
+            label="AI Analysis"
+            desc="AI-generated summaries, attack vectors, and mitigations for articles."
+          />
+          <FeatureCard 
+            icon={<ShieldAlert size={20} />}
+            label="CVE Enrichment"
+            desc="Automatic EPSS scoring and CISA KEV lookups."
+          />
+          <FeatureCard 
+            icon={<Bell size={20} />}
+            label="Real-time Alerts"
+            desc="Instant Telegram notifications for new threats."
+          />
         </div>
 
       </div>
     </main>
+  );
+}
+
+function FeatureCard({ icon, label, desc }: { icon: React.ReactNode, label: string, desc: string }) {
+  return (
+    <div
+      className="rounded text-left p-6 transition-colors duration-200 bg-[#151617] border border-[#303236]"
+    >
+      <div className="text-lg mb-3 text-[#34d59a]">{icon}</div>
+      <h3 className="text-sm font-semibold mb-1.5 text-white tracking-tight">
+        {label}
+      </h3>
+      <p className="text-xs text-zinc-400 leading-relaxed">
+        {desc}
+      </p>
+    </div>
   );
 }

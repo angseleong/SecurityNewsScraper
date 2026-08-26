@@ -1,13 +1,16 @@
 "use client"
 
 import { Search, RefreshCw, ShieldAlert, Bug } from "lucide-react"
+import CustomSelect from "./CustomSelect"
 
 interface FilterBarProps {
   search: string; severity: string; source: string; timeRange: string
   hasCve: boolean; criticalOnly: boolean
+  sort: string; sortOptions: { value: string; label: string }[]
   onSearch: (v: string) => void; onSeverity: (v: string) => void
   onSource: (v: string) => void; onTimeRange: (v: string) => void
   onHasCve: (v: boolean) => void; onCriticalOnly: (v: boolean) => void
+  onSort: (v: string) => void
   onScrape: () => void; scraping: boolean
 }
 
@@ -22,8 +25,8 @@ const TIME_RANGES = [
 const mono: React.CSSProperties = { fontFamily: 'var(--font-fira-code), monospace' }
 
 export default function FilterBar({
-  search, severity, source, timeRange, hasCve, criticalOnly,
-  onSearch, onSeverity, onSource, onTimeRange, onHasCve, onCriticalOnly, onScrape, scraping
+  search, severity, source, timeRange, hasCve, criticalOnly, sort, sortOptions,
+  onSearch, onSeverity, onSource, onTimeRange, onHasCve, onCriticalOnly, onSort, onScrape, scraping
 }: FilterBarProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -55,32 +58,18 @@ export default function FilterBar({
 
         {/* Pill Selects */}
         {[
-          { value: timeRange, onChange: (v: string) => onTimeRange(v), options: TIME_RANGES.map(t => ({ value: t.value, label: t.label })) },
-          { value: severity, onChange: (v: string) => { onSeverity(v); if (v !== "critical") onCriticalOnly(false) }, options: SEVERITIES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SEV" })) },
-          { value: source, onChange: (v: string) => onSource(v), options: SOURCES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SOURCES" })) },
+          { value: sort, onChange: (v: string) => onSort(v), options: sortOptions, width: '170px' },
+          { value: timeRange, onChange: (v: string) => onTimeRange(v), options: TIME_RANGES.map(t => ({ value: t.value, label: t.label })), width: '130px' },
+          { value: severity, onChange: (v: string) => { onSeverity(v); if (v !== "critical") onCriticalOnly(false) }, options: SEVERITIES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SEV" })), width: '140px' },
+          { value: source, onChange: (v: string) => onSource(v), options: SOURCES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SOURCES" })), width: '180px' },
         ].map((sel, i) => (
-          <select
+          <CustomSelect
             key={i}
             value={sel.value}
-            onChange={(e) => sel.onChange(e.target.value)}
-            className="cursor-pointer appearance-none"
-            style={{
-              ...mono,
-              backgroundColor: sel.value ? '#151617' : '#000000',
-              border: sel.value ? '1px solid #34d59a' : '1px solid #303236',
-              borderRadius: 9999,
-              padding: '8px 16px',
-              paddingRight: 28,
-              fontSize: 12,
-              color: sel.value ? '#34d59a' : '#797d86',
-              outline: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797d86' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 10px center',
-            }}
-          >
-            {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+            onChange={sel.onChange}
+            options={sel.options}
+            width={sel.width}
+          />
         ))}
 
         <button
@@ -106,7 +95,7 @@ export default function FilterBar({
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onHasCve(!hasCve)}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors cursor-pointer"
           style={{
             borderRadius: 9999,
             border: hasCve ? '1px solid #34d59a' : '1px solid #303236',
@@ -123,7 +112,7 @@ export default function FilterBar({
             if (next) onSeverity("critical")
             else if (severity === "critical") onSeverity("")
           }}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors cursor-pointer"
           style={{
             borderRadius: 9999,
             border: criticalOnly ? '1px solid #ff3621' : '1px solid #303236',

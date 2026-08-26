@@ -26,6 +26,7 @@ def register_routes(app: Flask) -> None:
             has_cve = request.args.get("has_cve")
             search = request.args.get("q")
             time_range = request.args.get("time_range")
+            sort = request.args.get("sort", "time_desc")
             page = max(1, int(request.args.get("page", 1)))
             per_page = 20
 
@@ -68,7 +69,23 @@ def register_routes(app: Flask) -> None:
                 )
 
             total = q.count()
-            articles = q.order_by(Article.published_at.desc(), Article.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+            
+            if sort == "severity_desc":
+                from sqlalchemy import case
+                sev_order = case(
+                    (Article.severity == 'critical', 4),
+                    (Article.severity == 'high', 3),
+                    (Article.severity == 'medium', 2),
+                    (Article.severity == 'info', 1),
+                    else_=0
+                )
+                q = q.order_by(sev_order.desc(), Article.published_at.desc(), Article.scraped_at.desc())
+            elif sort == "time_asc":
+                q = q.order_by(Article.published_at.asc(), Article.scraped_at.asc())
+            else:
+                q = q.order_by(Article.published_at.desc(), Article.scraped_at.desc())
+                
+            articles = q.offset((page - 1) * per_page).limit(per_page).all()
 
             from backend.database.models import WatchlistKeyword
             db_kws = session.query(WatchlistKeyword).all()
@@ -167,12 +184,30 @@ def register_routes(app: Flask) -> None:
 
             search = request.args.get("q")
             severity = request.args.get("severity")
+            sort = request.args.get("sort", "time_desc")
             if search:
                 q = q.filter(CVE.cve_id.ilike(f"%{search}%"))
             if severity:
                 q = q.filter(CVE.severity_hint == severity)
 
-            cves = q.order_by(CVE.id.desc()).limit(200).all()
+            if sort == "severity_desc":
+                from sqlalchemy import case
+                sev_order = case(
+                    (CVE.severity_hint == 'critical', 4),
+                    (CVE.severity_hint == 'high', 3),
+                    (CVE.severity_hint == 'medium', 2),
+                    (CVE.severity_hint == 'info', 1),
+                    else_=0
+                )
+                q = q.order_by(sev_order.desc(), CVE.id.desc())
+            elif sort == "epss_desc":
+                q = q.order_by(CVE.epss_score.desc().nulls_last(), CVE.id.desc())
+            elif sort == "time_asc":
+                q = q.order_by(CVE.id.asc())
+            else:
+                q = q.order_by(CVE.id.desc())
+
+            cves = q.limit(200).all()
             return jsonify({
                 "cves": [
                     {

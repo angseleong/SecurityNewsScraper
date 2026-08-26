@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { fetchCVEs } from "@/lib/api"
 import { CVE } from "@/lib/types"
 import { Search, ExternalLink, ShieldAlert, Bug } from "lucide-react"
+import CustomSelect from "@/components/CustomSelect"
 
 const mono: React.CSSProperties = { fontFamily: 'var(--font-fira-code), monospace' }
 
 export default function CvesPage() {
   const [cves, setCves] = useState<CVE[]>([])
   const [search, setSearch] = useState("")
+  const [sort, setSort] = useState("time_desc")
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -17,11 +19,12 @@ export default function CvesPage() {
     try {
       const params: Record<string, string> = {}
       if (search) params.q = search
+      if (sort) params.sort = sort
       const data = await fetchCVEs(params)
       setCves(data.cves)
     } catch { setCves([]) }
     finally { setLoading(false) }
-  }, [search])
+  }, [search, sort])
 
   useEffect(() => { load() }, [load])
 
@@ -47,28 +50,41 @@ export default function CvesPage() {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-xl mb-8">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#797d86' }} />
-          <input
-            type="text"
-            placeholder="CVE-2024-XXXXX or software name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full uppercase"
-            style={{
-              ...mono,
-              backgroundColor: '#000',
-              border: '1px solid #303236',
-              borderRadius: 9999,
-              paddingLeft: 44,
-              paddingRight: 20,
-              paddingTop: 12,
-              paddingBottom: 12,
-              fontSize: 14,
-              color: '#34d59a',
-              outline: 'none',
-            }}
+        {/* Search & Sort */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#797d86' }} />
+            <input
+              type="text"
+              placeholder="CVE-2024-XXXXX or software name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full uppercase"
+              style={{
+                ...mono,
+                backgroundColor: '#000',
+                border: '1px solid #303236',
+                borderRadius: 9999,
+                paddingLeft: 36,
+                paddingRight: 16,
+                paddingTop: 8,
+                paddingBottom: 8,
+                fontSize: 12,
+                color: '#34d59a',
+                outline: 'none',
+              }}
+            />
+          </div>
+          <CustomSelect
+            value={sort}
+            onChange={(v) => setSort(v)}
+            options={[
+              { value: "time_desc", label: "NEWEST FIRST" },
+              { value: "time_asc", label: "OLDEST FIRST" },
+              { value: "epss_desc", label: "HIGHEST RISK (EPSS)" },
+              { value: "severity_desc", label: "HIGHEST SEVERITY" }
+            ]}
+            className="w-full sm:w-64"
           />
         </div>
 
@@ -92,12 +108,12 @@ export default function CvesPage() {
         ) : uniqueCves.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
             <ShieldAlert size={32} style={{ color: '#303236' }} />
-            <p className="text-sm tracking-widest" style={{ color: '#797d86', ...mono }}>NO CVEs FOUND</p>
+            <p className="text-sm tracking-wide" style={{ color: '#797d86', ...mono }}>NO CVEs FOUND</p>
           </div>
         ) : (
           <div style={{ border: '1px solid #303236', borderRadius: 4, overflow: 'hidden' }}>
             {/* Header row */}
-            <div className="flex items-center gap-4 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.15em]"
+            <div className="flex items-center gap-4 px-5 py-3 text-[10px] font-semibold uppercase tracking-wide"
               style={{ backgroundColor: '#0a0a0b', color: '#797d86', borderBottom: '1px solid #303236', ...mono }}>
               <div className="w-44 shrink-0">CVE ID</div>
               <div className="w-24 shrink-0">Severity</div>
@@ -121,7 +137,7 @@ export default function CvesPage() {
                     {cveId}
                   </div>
                   <div className="w-24 shrink-0">
-                    <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-bold"
+                    <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wide font-bold"
                       style={{ ...mono, color: sevColor, backgroundColor: `${sevColor}15`, border: `1px solid ${sevColor}40` }}>
                       {first.severity_hint || 'INFO'}
                     </span>

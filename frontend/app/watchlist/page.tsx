@@ -90,7 +90,7 @@ export default function WatchlistPage() {
 
           {/* Add Keywords */}
           <div className="rounded p-6" style={{ backgroundColor: '#151617', border: '1px solid #303236', borderRadius: 4 }}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
               <Plus size={14} style={{ color: '#34d59a' }} /> Add Keyword
             </h2>
             <div className="flex gap-3">
@@ -141,12 +141,12 @@ export default function WatchlistPage() {
 
           {/* Info */}
           <div className="rounded p-6" style={{ backgroundColor: '#151617', border: '1px solid #303236', borderRadius: 4 }}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
               <AlertTriangle size={14} style={{ color: '#ff3621' }} /> Real-time System
             </h2>
             <div className="space-y-4 text-sm" style={{ color: '#94979e', lineHeight: 1.7 }}>
               <p>Whenever new articles are scraped or viewed, they are evaluated directly against these keywords in the database.</p>
-              <p>Matching articles automatically get a <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-widest" style={{ ...mono, color: '#ff3621', backgroundColor: 'rgba(255,54,33,0.1)', border: '1px solid rgba(255,54,33,0.3)' }}>TARGET</span> badge in the Radar feed.</p>
+              <p>Matching articles automatically get a <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide" style={{ ...mono, color: '#ff3621', backgroundColor: 'rgba(255,54,33,0.1)', border: '1px solid rgba(255,54,33,0.3)' }}>TARGET</span> badge in the Radar feed.</p>
               <p>Telegram bot notifications trigger immediately when target keywords are mentioned in any incoming article.</p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function WatchlistPage() {
         {/* Current keywords */}
         <div className="mt-8 rounded p-6" style={{ backgroundColor: '#151617', border: '1px solid #303236', borderRadius: 4 }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
               <Eye size={14} style={{ color: '#34d59a' }} /> Active Keywords (Database)
               <span className="ml-2 px-2 py-0.5 rounded text-[10px]" style={{ ...mono, backgroundColor: '#242628', color: '#34d59a' }}>
                 {keywords.length}
@@ -196,7 +196,7 @@ export default function WatchlistPage() {
 
         {/* Tools Section */}
         <div className="mt-8 rounded p-6" style={{ backgroundColor: '#151617', border: '1px solid #303236', borderRadius: 4 }}>
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
+          <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6 flex items-center gap-2" style={{ color: '#797d86', ...mono }}>
             <Zap size={14} style={{ color: '#34d59a' }} /> Tools & Enrichment
           </h2>
           

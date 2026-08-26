@@ -54,7 +54,7 @@ export default function AnalyticsPage() {
             <div key={m.label} style={card} className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span style={{ color: m.color }}>{m.icon}</span>
-                <span className="text-xs uppercase tracking-widest" style={{ color: '#797d86', ...mono }}>{m.label}</span>
+                <span className="text-xs uppercase tracking-wide" style={{ color: '#797d86', ...mono }}>{m.label}</span>
               </div>
               <span className="text-3xl font-medium" style={{ color: m.color, ...mono }}>{m.value}</span>
             </div>
@@ -66,7 +66,7 @@ export default function AnalyticsPage() {
 
           {/* Incident Trend */}
           <div style={card}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6" style={{ color: '#797d86', ...mono }}>
               7-Day Incident Trend
             </h2>
             <div className="h-56">
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
 
           {/* Severity Breakdown Pie */}
           <div style={card}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6" style={{ color: '#797d86', ...mono }}>
               Severity Distribution
             </h2>
             <div className="h-56 flex items-center">
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
 
           {/* Articles per Source Bar */}
           <div style={card}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6" style={{ color: '#797d86', ...mono }}>
               Articles per Source
             </h2>
             <div className="h-56">
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
 
           {/* Top Targeted Software */}
           <div style={card}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-6" style={{ color: '#797d86', ...mono }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wide mb-6" style={{ color: '#797d86', ...mono }}>
               Top Targeted Software
             </h2>
             <div className="flex flex-col gap-3">
