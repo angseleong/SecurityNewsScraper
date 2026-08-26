@@ -4,4 +4,4 @@
 python -m backend.worker &
 
 # Start the gunicorn web server in the foreground
-exec gunicorn -w 2 -b 0.0.0.0:${PORT:-5000} backend.main:app
+exec gunicorn -w 1 -b 0.0.0.0:${PORT:-5000} backend.main:app
