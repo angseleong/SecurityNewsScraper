@@ -128,18 +128,18 @@ Gunakan file ini sebagai panduan kerja utama. **Jangan mulai tahap selanjutnya s
 
 ## Phase 8 — Deployment
 
-- [ ] Pastikan semua secret ada di `.env` dan tidak di-commit ke Git
-- [ ] Buat `Procfile` atau `render.yaml` untuk konfigurasi deployment di Render
-- [ ] Buat `runtime.txt` dengan versi Python yang digunakan
-- [ ] Test deployment di Render free tier:
-  - [ ] Backend API dapat diakses via public URL
-  - [ ] Next.js Frontend terdeploy (misal di Vercel atau Render) dan berhasil call Backend API
-  - [ ] Scheduler berjalan di background
-  - [ ] SQLite database persisten (tidak terhapus saat restart)
-  - [ ] Telegram notifikasi terkirim dari server backend
-- [ ] Update `README.md` dengan instruksi deployment lengkap
+- [x] Pastikan semua secret ada di `.env` dan tidak di-commit ke Git
+- [x] Buat `Procfile` atau `render.yaml` untuk konfigurasi deployment di Render
+- [x] Buat `runtime.txt` dengan versi Python yang digunakan
+- [x] Test deployment di Render free tier:
+  - [x] Backend API dapat diakses via public URL
+  - [x] Next.js Frontend terdeploy (misal di Vercel atau Render) dan berhasil call Backend API
+  - [x] Scheduler berjalan di background
+  - [x] SQLite database persisten (tidak terhapus saat restart)
+  - [x] Telegram notifikasi terkirim dari server backend
+- [x] Update `README.md` dengan instruksi deployment lengkap
 
-**Checkpoint Phase 8:** Dashboard dapat diakses dari internet via URL publik. Tanpa membuka laptop, setelah interval waktu tertentu, artikel baru muncul di dashboard dan notifikasi Telegram terkirim.
+**Checkpoint Phase 8:** [SELESAI] Dashboard dapat diakses dari internet via URL publik. Tanpa membuka laptop, setelah interval waktu tertentu, artikel baru muncul di dashboard dan notifikasi Telegram terkirim.
 
 ---
 

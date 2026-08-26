@@ -282,6 +282,10 @@ def register_routes(app: Flask) -> None:
 
     @app.post("/api/scrape")
     def trigger_scrape():
+        from backend import config
+        if request.headers.get("X-Admin-Secret") != config.ADMIN_SECRET:
+            return jsonify({"error": "Unauthorized"}), 401
+            
         def _run():
             from backend.scheduler.jobs import scrape_all_sources
             init_db()
@@ -294,6 +298,10 @@ def register_routes(app: Flask) -> None:
 
     @app.post("/api/enrich")
     def trigger_enrich():
+        from backend import config
+        if request.headers.get("X-Admin-Secret") != config.ADMIN_SECRET:
+            return jsonify({"error": "Unauthorized"}), 401
+            
         def _run():
             from backend.extractor.cve_enricher import enrich_cves_in_db
             session = get_session()

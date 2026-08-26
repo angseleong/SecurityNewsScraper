@@ -54,8 +54,8 @@ def scrape_all_sources() -> None:
                     
                     text_to_analyze = f"{raw.title}\n{raw.summary}\n{raw.full_text}"
                     
-                    # Be nice to Gemini (Free Tier = 15 RPM). Delay 4s per article.
-                    time.sleep(4)
+                    # Be nice to Gemini (Free Tier = 15 RPM). Delay 5s per article.
+                    time.sleep(5)
                     
                     ai_data = analyze_article(text_to_analyze)
                     if ai_data:

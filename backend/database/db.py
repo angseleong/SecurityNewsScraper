@@ -18,8 +18,17 @@ def get_engine():
     if _engine is None:
         db_path = Path(__file__).parent.parent / config.DATABASE_PATH
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        _engine = create_engine(f"sqlite:///{db_path}", echo=False)
-        logger.info("Database engine created at %s", db_path)
+        _engine = create_engine(
+            f"sqlite:///{db_path}",
+            echo=False,
+            connect_args={"check_same_thread": False, "timeout": 15}
+        )
+        
+        from sqlalchemy import text
+        with _engine.connect() as conn:
+            conn.execute(text("PRAGMA journal_mode=WAL;"))
+            
+        logger.info("Database engine created at %s (WAL enabled)", db_path)
     return _engine
 
 def get_session() -> Session:

@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
@@ -20,34 +21,47 @@ def analyze_article(text: str) -> dict | None:
         logger.warning("GEMINI_API_KEY is not set or using placeholder. Skipping AI analysis.")
         return None
 
-    try:
-        client = genai.Client(api_key=api_key)
-        
-        prompt = f"""
-        You are a highly skilled Threat Intelligence Analyst. 
-        Analyze the following security news article and extract the requested fields in JSON.
-        Keep your answers concise and actionable for a security team.
+    client = genai.Client(api_key=api_key)
+    
+    prompt = f"""
+    You are a highly skilled Threat Intelligence Analyst. 
+    Analyze the following security news article and extract the requested fields in JSON.
+    Keep your answers concise and actionable for a security team.
 
-        Article Text:
-        {text[:4000]} # Truncate to avoid massive payloads just in case
-        """
+    Article Text:
+    {text[:4000]} # Truncate to avoid massive payloads just in case
+    """
 
-        response = client.models.generate_content(
-            model='gemini-flash-lite-latest',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=ArticleIntel,
-            ),
-        )
-        
-        # Pydantic schema validation is built-in via the new SDK's response_schema
-        # The response.text is guaranteed to be a JSON string matching the schema
-        import json
-        if not response.text:
+    max_retries = 3
+    base_delay = 10
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-flash-lite-latest',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=ArticleIntel,
+                ),
+            )
+            
+            # Pydantic schema validation is built-in via the new SDK's response_schema
+            import json
+            if not response.text:
+                return None
+            return json.loads(response.text)
+
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "ResourceExhausted" in err_str or "Too Many Requests" in err_str:
+                if attempt < max_retries - 1:
+                    sleep_time = base_delay * (2 ** attempt)
+                    logger.warning(f"Gemini rate limit hit (429). Retrying in {sleep_time}s (Attempt {attempt+1}/{max_retries})...")
+                    time.sleep(sleep_time)
+                    continue
+            
+            logger.error(f"Failed to analyze article with Gemini: {e}")
             return None
-        return json.loads(response.text)
-
-    except Exception as e:
-        logger.error(f"Failed to analyze article with Gemini: {e}")
-        return None
+            
+    return None

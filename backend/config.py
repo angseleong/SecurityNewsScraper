@@ -36,6 +36,7 @@ DATABASE_PATH: str = os.getenv("DATABASE_PATH", "data/security_news.db")
 FLASK_SECRET_KEY: str = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 FLASK_DEBUG: bool = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 PORT: int = int(os.getenv("PORT", "5000"))
+ADMIN_SECRET: str = os.getenv("ADMIN_SECRET", "super-secret-admin-key")
 
 # ── News Sources ───────────────────────────────────────────────────────────────
 # List of active scrapers. Add/remove sources here — never hardcode in business logic.

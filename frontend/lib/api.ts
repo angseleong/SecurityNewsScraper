@@ -21,13 +21,21 @@ export async function fetchStats() {
 }
 
 export async function triggerScrape() {
-  const res = await fetch(`${BASE}/api/scrape`, { method: "POST" })
+  const secret = process.env.NEXT_PUBLIC_ADMIN_SECRET || "super-secret-admin-key"
+  const res = await fetch(`${BASE}/api/scrape`, { 
+    method: "POST",
+    headers: { "X-Admin-Secret": secret }
+  })
   if (!res.ok) throw new Error("Failed to trigger scrape")
   return res.json()
 }
 
 export async function triggerEnrichment() {
-  const res = await fetch(`${BASE}/api/enrich`, { method: "POST" })
+  const secret = process.env.NEXT_PUBLIC_ADMIN_SECRET || "super-secret-admin-key"
+  const res = await fetch(`${BASE}/api/enrich`, { 
+    method: "POST",
+    headers: { "X-Admin-Secret": secret }
+  })
   if (!res.ok) throw new Error("Failed to trigger enrichment")
   return res.json()
 }
