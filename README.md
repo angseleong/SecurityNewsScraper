@@ -1,197 +1,120 @@
-# SecurityNewsScraper
+<div align="center">
+  <h1>🛡️ SecurityNewsScraper (SNS)</h1>
+  <p><b>Autonomous Threat Intelligence & Vulnerability Monitoring Platform</b></p>
+  
+  ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)
+  ![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg?logo=next.js&logoColor=white)
+  ![Flask](https://img.shields.io/badge/Flask-3.x-lightgrey.svg?logo=flask&logoColor=black)
+  ![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57.svg?logo=sqlite&logoColor=white)
+  ![Gemini AI](https://img.shields.io/badge/AI-Gemini%20Flash-orange.svg)
+</div>
 
-An **automated threat intelligence system** that aggregates cybersecurity news from trusted portals, extracts vulnerabilities (CVEs), and presents them on a web dashboard — with real-time Telegram notifications for critical threats.
+<br />
 
----
-
-## What It Does
-
-- **Automated Scraping** — Fetches the latest articles from The Hacker News, Bleeping Computer, Krebs on Security, and SecurityWeek via RSS feeds every few hours.
-- **CVE Detection** — Automatically identifies CVE codes and classifies the severity (Critical / High / Medium / Info) of each article using AI.
-- **Web Dashboard** — A modern web interface to view, search, and filter all saved news and CVEs.
-- **Telegram Notifications** — Sends instant alerts to Telegram when Critical or High-severity news is found.
-- **Local Database** — All articles and CVEs are stored in SQLite, making them easily searchable at any time.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Backend API | Python 3.11+, Flask 3.x (REST API) |
-| Scraping | `requests`, `feedparser`, `beautifulsoup4` |
-| Database | SQLite + SQLAlchemy 2.x |
-| Scheduler | APScheduler 3.x |
-| Notifications | python-telegram-bot 20.x |
-| Frontend | Next.js (App Router), React, Tailwind CSS |
+<div align="center">
+  <img src="docs/assets/landing.png" alt="SNS Landing Page" width="800" />
+</div>
 
 ---
 
-## Project Structure
+## ⚡ The Concept
 
+Staying ahead of zero-days and critical vulnerabilities is a race against time. Traditional RSS readers are too noisy, and enterprise threat intelligence platforms are prohibitively expensive.
+
+**SecurityNewsScraper (SNS)** bridges this gap. It is an autonomous agent that continuously scrapes top cybersecurity portals, uses AI to instantly extract mitigation steps and CVEs, and alerts you via Telegram before the exploit hits the mainstream.
+
+## 🚀 Key Features
+
+### 1. Autonomous Intelligence Radar
+The system scrapes articles 24/7 in the background. The Gemini AI engine reads the full text of every article to extract **Attack Vectors**, **Mitigations**, and **Shodan Dorks**.
+<img src="docs/assets/radar.png" alt="Radar Feed" width="100%" />
+
+### 2. Unified Vulnerability (CVE) Database
+Never miss a patch. The system automatically cross-references CVEs mentioned in the news and builds a searchable database sorted by severity and EPSS probability scores.
+<img src="docs/assets/cve.png" alt="CVE Database" width="100%" />
+
+### 3. Actionable Telemetry & Analytics
+Get a macro view of the threat landscape. Track 7-day incident trends, top targeted software, and severity breakdowns to prioritize your patching cycles.
+<img src="docs/assets/analytics.png" alt="Analytics Dashboard" width="100%" />
+
+### 4. Watchlist & Real-Time Alerting
+Configure critical keywords (e.g., "Windows Server", "OpenSSL") in your Watchlist. If an incoming threat matches your stack, SNS sends a high-priority Telegram alert instantly.
+<img src="docs/assets/watchlist.png" alt="Watchlist" width="100%" />
+
+---
+
+## 🏗️ System Architecture
+
+Designed for high concurrency and production readiness, SNS separates the data ingestion pipeline from the API layer.
+
+```mermaid
+graph LR
+    subgraph Data Ingestion
+        W[Background Worker] --> |Scrapes RSS| Web(News Sources)
+        W --> |Analyzes Text| AI(Gemini AI)
+        W --> |Writes WAL| DB[(SQLite)]
+        W --> |Alerts| TG(Telegram)
+    end
+    
+    subgraph Serving Layer
+        API[Flask REST API] --> |Reads| DB
+        UI[Next.js Frontend] --> |Fetches| API
+    end
 ```
-SecurityNewsScraper/
-├── docs/               ← Technical documentation (PRD, Architecture, Design, TODO)
-├── backend/            ← Backend (Python REST API, Scraper, DB)
-│   ├── scraper/
-│   ├── extractor/
-│   ├── database/
-│   ├── scheduler/
-│   ├── notifier/
-│   ├── api/            ← Flask REST API Endpoints
-│   ├── data/           ← SQLite database (not committed to Git)
-│   ├── main.py         ← Backend web server entry point
-│   ├── worker.py       ← Background scraper worker entry point
-│   └── config.py
-├── frontend/           ← Frontend (Next.js, React, Tailwind)
-│   ├── src/app/        
-│   └── src/components/ 
-├── cli.py              ← Command-line interface
-└── AGENTS.md           ← Development rules for AI agents
-```
+
+- **Resilient AI**: Built-in exponential backoff ensures zero crashes even if the AI API hits rate limits.
+- **SQLite WAL**: Write-Ahead Logging allows the background worker to write massive amounts of data without locking the database for the frontend users.
 
 ---
 
-## Setup & Installation (Local)
+## 🛠️ Quick Start (Local)
 
-### 1. Clone and Setup Backend (Python)
-
+### 1. Backend Setup
 ```bash
 git clone https://github.com/angseleong/SecurityNewsScraper.git
 cd SecurityNewsScraper
 
-# Setup Virtual Environment
 python -m venv venv
-source venv/bin/activate      # macOS/Linux
-# venv\Scripts\activate       # Windows
+source venv/bin/activate
 
 pip install -r backend/requirements.txt
+cp backend/.env.example backend/.env
 ```
-
-### 2. Setup Frontend (Next.js)
+*Configure your `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY`, and `ADMIN_SECRET` in `backend/.env`.*
 
 ```bash
+# Initialize DB
+python -c "from backend.database.db import init_db; init_db()"
+
+# Terminal 1: Start API
+PORT=5000 python -m backend.main
+
+# Terminal 2: Start Scraper Daemon
+python -m backend.worker
+```
+
+### 2. Frontend Setup
+```bash
+# Terminal 3
 cd frontend
 npm install
-cd ..
-```
-
-### 3. Environment Configuration
-
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-```
-
-Edit the `backend/.env` file and fill in the following values:
-
-```env
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
-SCRAPE_INTERVAL_HOURS=6
-ALERT_KEYWORDS=Windows Server,OpenSSL,Linux Kernel
-ALERT_MIN_SEVERITY=high
-ADMIN_SECRET=your_super_secret_key
-```
-
-**How to create a Telegram Bot:**
-1. Open Telegram, search for `@BotFather`
-2. Send `/newbot` and follow the instructions
-3. Copy the provided token to `TELEGRAM_BOT_TOKEN`
-4. Send a message to your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to get your `chat_id`
-
-### 4. Initialize Database
-
-```bash
-python -c "from backend.database.db import init_db; init_db()"
-```
-
-### 5. Run the Application
-
-Run the backend web API, background worker, and frontend in three different terminals.
-
-**Terminal 1 (Backend API):**
-```bash
-source venv/bin/activate
-PORT=5000 python -m backend.main
-# Backend API runs at http://localhost:5000
-```
-
-**Terminal 2 (Background Scraper Worker):**
-```bash
-source venv/bin/activate
-python -m backend.worker
-# Quietly scrapes articles in the background
-```
-
-**Terminal 3 (Frontend Next.js):**
-```bash
-cd frontend
+cp .env.local.example .env.local
 npm run dev
-# Frontend Dashboard available at http://localhost:3000
 ```
+*Access the dashboard at [http://localhost:3000](http://localhost:3000)*
 
 ---
 
-## Deployment (Production)
+## ☁️ Production Deployment
 
-The architecture is fully optimized for production with SQLite WAL mode and a separated background worker to prevent database locks and API rate limits.
+SNS is ready to be deployed on modern PaaS providers.
 
-### Backend (Render.com)
-
-We use Render's Free Tier with a persistent disk to host both the API and the Worker simultaneously using a startup script.
-
-1. Create a new **Web Service** on [Render](https://render.com).
-2. Connect your GitHub repository.
-3. Render will automatically detect the `render.yaml` blueprint in the repository.
-4. Go to the **Environment** tab and add your secrets (e.g., `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `ADMIN_SECRET`).
-5. Render will execute `start.sh` which boots both the API and the background scraper while sharing the persistent `/var/data` disk for SQLite.
-
-### Frontend (Vercel)
-
-1. Create a new project on [Vercel](https://vercel.com).
-2. Connect your GitHub repository.
-3. Set the **Framework Preset** to `Next.js`.
-4. Set the **Root Directory** to `frontend`.
-5. In **Environment Variables**, add:
-   - `NEXT_PUBLIC_API_URL`: Your Render backend URL (e.g., `https://sns-api.onrender.com`)
-   - `NEXT_PUBLIC_ADMIN_SECRET`: The exact same secret you set in the backend for `ADMIN_SECRET`.
-6. Deploy!
+- **Backend (Render)**: Use the provided `render.yaml` to deploy both the API and the Background Worker onto a single persistent disk instance. `start.sh` automatically manages both processes.
+- **Frontend (Vercel)**: Connect your repo to Vercel, set the Framework Preset to Next.js, and configure `NEXT_PUBLIC_API_URL` to point to your Render backend.
 
 ---
 
-## CLI Usage
+## ⚖️ Ethics & Legal
+This project uses public RSS feeds provided officially by news portals. Scraping is strictly rate-limited. Data is intended for internal monitoring and security awareness, not for commercial redistribution.
 
-```bash
-# Manually trigger scraping (without opening the browser)
-python cli.py scrape
-
-# Search articles by CVE ID
-python cli.py search --cve CVE-2024-12345
-
-# List articles with critical severity
-python cli.py list --severity critical
-
-# List the 10 newest articles from a specific source
-python cli.py list --source bleepingcomputer --limit 10
-```
-
----
-
-## Documentation
-
-Read the full technical documentation in the `docs/` folder:
-
-- [`docs/PRD.md`](docs/PRD.md) — Product requirements, features, and scope
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — System architecture, database schema, and component design
-- [`docs/DESIGN.md`](docs/DESIGN.md) — UI/UX guidelines and visual references
-- [`docs/TODO.md`](docs/TODO.md) — Implementation progress phase by phase
-
----
-
-## Ethics & Legal
-
-- This project only uses **public RSS feeds** officially provided by news portals as the primary scraping method.
-- Always respect the `robots.txt` of each source.
-- Scraping is strictly rate-limited and avoids overloading target servers.
-- The collected data is solely for monitoring and security awareness, not for commercial redistribution.
+<p align="center">Made for the defenders. 🛡️</p>
