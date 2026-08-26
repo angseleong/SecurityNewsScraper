@@ -231,11 +231,17 @@ Menggunakan library `python-telegram-bot`. Mengirim pesan ke satu `CHAT_ID` yang
 
 ### 5.5 Frontend Dashboard (Next.js)
 
-Next.js dan React digunakan sebagai frontend SPA (Single Page Application) yang sangat interaktif:
+Next.js dan React digunakan sebagai frontend SPA (Single Page Application) yang sangat interaktif dan terstruktur dalam beberapa halaman (Routing):
+- **`/` (Landing Page):** Halaman pembuka dengan desain minimalis untuk menyambut pengguna.
+- **`/radar` (Live Threat Feed):** Halaman utama; mengonsumsi data via HTTP GET ke Flask REST API (`/api/articles`). Filter state dikelola di client (React state).
+- **`/cves` (CVE Explorer):** Mesin pencari khusus kerentanan.
+- **`/analytics` (Threat Trends):** Menampilkan visualisasi data (grafik/chart) dari statistik ancaman.
+- **`/watchlist` (Scope & Settings):** Tempat konfigurasi target aset.
+
+**Detail Teknis Frontend:**
 - Mengonsumsi data via HTTP GET ke Flask REST API (`/api/articles`, `/api/cves`, `/api/stats`).
-- Filter state (`selectedSeverity`, `searchQuery`) dikelola sepenuhnya di sisi client (React state) agar perubahan UI terjadi secara instan tanpa loading page.
 - Menangani request POST ke `/api/scrape` melalui tombol "Scrape Now" yang akan mengubah UI ke state "Loading" secara dinamis.
-- Menggunakan Tailwind CSS untuk styling cepat dan modern, serta Lucide React untuk ikon.
+- Menggunakan Tailwind CSS (Neon Design System) untuk styling cepat dan modern, serta Lucide React untuk ikon.
 
 ---
 

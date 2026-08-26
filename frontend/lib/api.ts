@@ -25,3 +25,37 @@ export async function triggerScrape() {
   if (!res.ok) throw new Error("Failed to trigger scrape")
   return res.json()
 }
+
+export async function triggerEnrichment() {
+  const res = await fetch(`${BASE}/api/enrich`, { method: "POST" })
+  if (!res.ok) throw new Error("Failed to trigger enrichment")
+  return res.json()
+}
+
+export async function fetchWatchlist(): Promise<{ keywords: { id: number; keyword: string }[] }> {
+  const res = await fetch(`${BASE}/api/watchlist`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch watchlist")
+  return res.json()
+}
+
+export async function addWatchlistKeyword(keyword: string): Promise<{ status: string; keyword: { id: number; keyword: string } }> {
+  const res = await fetch(`${BASE}/api/watchlist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ keyword }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || "Failed to add keyword")
+  }
+  return res.json()
+}
+
+export async function deleteWatchlistKeyword(id: number): Promise<{ status: string; id: number }> {
+  const res = await fetch(`${BASE}/api/watchlist/${id}`, {
+    method: "DELETE",
+  })
+  if (!res.ok) throw new Error("Failed to delete keyword")
+  return res.json()
+}
+

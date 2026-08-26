@@ -3,29 +3,23 @@
 import { Search, RefreshCw, ShieldAlert, Bug } from "lucide-react"
 
 interface FilterBarProps {
-  search: string
-  severity: string
-  source: string
-  timeRange: string
-  hasCve: boolean
-  criticalOnly: boolean
-  onSearch: (v: string) => void
-  onSeverity: (v: string) => void
-  onSource: (v: string) => void
-  onTimeRange: (v: string) => void
-  onHasCve: (v: boolean) => void
-  onCriticalOnly: (v: boolean) => void
-  onScrape: () => void
-  scraping: boolean
+  search: string; severity: string; source: string; timeRange: string
+  hasCve: boolean; criticalOnly: boolean
+  onSearch: (v: string) => void; onSeverity: (v: string) => void
+  onSource: (v: string) => void; onTimeRange: (v: string) => void
+  onHasCve: (v: boolean) => void; onCriticalOnly: (v: boolean) => void
+  onScrape: () => void; scraping: boolean
 }
 
 const SEVERITIES = ["", "critical", "high", "medium", "info"]
 const SOURCES = ["", "bleepingcomputer", "thehackernews", "krebsonsecurity", "securityweek"]
 const TIME_RANGES = [
   { value: "", label: "ALL TIME" },
-  { value: "today", label: "TODAY (24H)" },
-  { value: "week", label: "THIS WEEK (7D)" },
+  { value: "today", label: "TODAY" },
+  { value: "week", label: "7 DAYS" },
 ]
+
+const mono: React.CSSProperties = { fontFamily: 'var(--font-fira-code), monospace' }
 
 export default function FilterBar({
   search, severity, source, timeRange, hasCve, criticalOnly,
@@ -33,85 +27,111 @@ export default function FilterBar({
 }: FilterBarProps) {
   return (
     <div className="flex flex-col gap-3">
-      {/* Search and Main Filters */}
       <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#797d86' }} />
           <input
             type="text"
-            placeholder="SEARCH CVE, VENDOR, OR INTEL..."
+            placeholder="SEARCH CVE, VENDOR..."
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            className="w-full bg-black border border-gray-700 rounded pl-9 pr-4 py-1.5 text-xs text-cyan-400 placeholder-gray-600 focus:outline-none focus:border-cyan-500 transition-colors uppercase"
+            className="w-full uppercase"
+            style={{
+              ...mono,
+              backgroundColor: '#000000',
+              border: '1px solid #303236',
+              borderRadius: 9999,
+              paddingLeft: 36,
+              paddingRight: 16,
+              paddingTop: 8,
+              paddingBottom: 8,
+              fontSize: 12,
+              color: '#34d59a',
+              outline: 'none',
+            }}
           />
         </div>
 
-        <select
-          value={timeRange}
-          onChange={(e) => onTimeRange(e.target.value)}
-          className="bg-black border border-gray-700 rounded px-3 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 uppercase"
-        >
-          {TIME_RANGES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-
-        <select
-          value={severity}
-          onChange={(e) => {
-            onSeverity(e.target.value)
-            if (e.target.value !== "critical") onCriticalOnly(false)
-          }}
-          className="bg-black border border-gray-700 rounded px-3 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 uppercase"
-        >
-          {SEVERITIES.map((s) => (
-            <option key={s} value={s}>{s ? s : "ALL SEVERITIES"}</option>
-          ))}
-        </select>
-
-        <select
-          value={source}
-          onChange={(e) => onSource(e.target.value)}
-          className="bg-black border border-gray-700 rounded px-3 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 uppercase"
-        >
-          {SOURCES.map((s) => (
-            <option key={s} value={s}>{s || "ALL SOURCES"}</option>
-          ))}
-        </select>
+        {/* Pill Selects */}
+        {[
+          { value: timeRange, onChange: (v: string) => onTimeRange(v), options: TIME_RANGES.map(t => ({ value: t.value, label: t.label })) },
+          { value: severity, onChange: (v: string) => { onSeverity(v); if (v !== "critical") onCriticalOnly(false) }, options: SEVERITIES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SEV" })) },
+          { value: source, onChange: (v: string) => onSource(v), options: SOURCES.map(s => ({ value: s, label: s ? s.toUpperCase() : "ALL SOURCES" })) },
+        ].map((sel, i) => (
+          <select
+            key={i}
+            value={sel.value}
+            onChange={(e) => sel.onChange(e.target.value)}
+            className="cursor-pointer appearance-none"
+            style={{
+              ...mono,
+              backgroundColor: sel.value ? '#151617' : '#000000',
+              border: sel.value ? '1px solid #34d59a' : '1px solid #303236',
+              borderRadius: 9999,
+              padding: '8px 16px',
+              paddingRight: 28,
+              fontSize: 12,
+              color: sel.value ? '#34d59a' : '#797d86',
+              outline: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797d86' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 10px center',
+            }}
+          >
+            {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        ))}
 
         <button
           onClick={onScrape}
           disabled={scraping}
-          className="flex items-center gap-2 px-4 py-1.5 bg-gray-900 border border-gray-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-50 text-gray-300 text-xs rounded transition-colors uppercase font-bold tracking-wider shrink-0"
+          className="flex items-center gap-2 font-medium disabled:opacity-40 transition-all hover:scale-105 cursor-pointer"
+          style={{
+            ...mono,
+            backgroundColor: '#ffffff',
+            color: '#151617',
+            borderRadius: 9999,
+            padding: '8px 20px',
+            fontSize: 12,
+            border: 'none',
+          }}
         >
-          <RefreshCw size={12} className={scraping ? "animate-spin" : ""} />
-          {scraping ? "EXECUTING..." : "INIT_SCRAPE"}
+          <RefreshCw size={14} className={scraping ? "animate-spin" : ""} />
+          {scraping ? "RUNNING..." : "SCRAPE"}
         </button>
       </div>
 
-      {/* Quick Toggles */}
-      <div className="flex flex-wrap gap-2 items-center">
+      {/* Toggle pills */}
+      <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => {
-            const next = !hasCve;
-            onHasCve(next);
+          onClick={() => onHasCve(!hasCve)}
+          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
+          style={{
+            borderRadius: 9999,
+            border: hasCve ? '1px solid #34d59a' : '1px solid #303236',
+            backgroundColor: hasCve ? 'rgba(52,213,154,0.1)' : 'transparent',
+            color: hasCve ? '#34d59a' : '#797d86',
           }}
-          className={`flex items-center gap-1.5 px-3 py-1 text-[10px] uppercase tracking-wider rounded border transition-colors ${hasCve ? 'bg-cyan-950/40 border-cyan-500 text-cyan-400 shadow-[0_0_8px_rgba(0,255,255,0.2)]' : 'bg-transparent border-gray-700 text-gray-500 hover:border-gray-500'}`}
         >
-          <Bug size={12} />
-          Only With CVEs
+          <Bug size={12} /> CVE Only
         </button>
         <button
           onClick={() => {
-            const next = !criticalOnly;
-            onCriticalOnly(next);
-            if (next) onSeverity("critical");
-            else if (severity === "critical") onSeverity("");
+            const next = !criticalOnly
+            onCriticalOnly(next)
+            if (next) onSeverity("critical")
+            else if (severity === "critical") onSeverity("")
           }}
-          className={`flex items-center gap-1.5 px-3 py-1 text-[10px] uppercase tracking-wider rounded border transition-colors ${criticalOnly ? 'bg-red-950/40 border-red-500 text-red-400 shadow-[0_0_8px_rgba(255,0,0,0.2)]' : 'bg-transparent border-gray-700 text-gray-500 hover:border-gray-500'}`}
+          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
+          style={{
+            borderRadius: 9999,
+            border: criticalOnly ? '1px solid #ff3621' : '1px solid #303236',
+            backgroundColor: criticalOnly ? 'rgba(255,54,33,0.1)' : 'transparent',
+            color: criticalOnly ? '#ff3621' : '#797d86',
+          }}
         >
-          <ShieldAlert size={12} />
-          Critical Only
+          <ShieldAlert size={12} /> Critical
         </button>
       </div>
     </div>

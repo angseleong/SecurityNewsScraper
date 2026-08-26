@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 from pathlib import Path
 from backend.api import create_app
+from backend.database.db import init_db
 from backend.scheduler.jobs import start_scheduler
 import backend.config as config
 
@@ -22,6 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def main() -> None:
+    init_db()
     app = create_app()
     scheduler = start_scheduler()
     logger.info("SecurityNewsScraper backend starting on port %s", config.PORT)

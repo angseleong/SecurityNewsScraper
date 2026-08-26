@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, Session
 
-from .models import Base, Article, CVE, ScrapeLog
+from .models import Base, Article, CVE, ScrapeLog, WatchlistKeyword
 from backend import config
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,22 @@ def get_session() -> Session:
 
 def init_db() -> None:
     Base.metadata.create_all(get_engine())
+    # Seed default keywords if empty
+    session = get_session()
+    try:
+        count = session.query(WatchlistKeyword).count()
+        if count == 0:
+            defaults = config.ALERT_KEYWORDS or ["Windows Server", "OpenSSL", "Linux Kernel", "Fortinet"]
+            for kw in defaults:
+                if kw.strip():
+                    session.add(WatchlistKeyword(keyword=kw.strip()))
+            session.commit()
+            logger.info("Seeded %d initial watchlist keywords.", len(defaults))
+    except Exception as e:
+        session.rollback()
+        logger.warning("Failed to seed initial watchlist keywords: %s", e)
+    finally:
+        session.close()
     logger.info("Database initialized.")
 
 def save_article(processed) -> tuple[Article | None, bool]:
@@ -143,3 +159,54 @@ def mark_notified(article_id: int) -> None:
         logger.error("Failed to mark article_id=%s as notified: %s", article_id, exc)
     finally:
         session.close()
+
+def get_watchlist_keywords() -> list[dict]:
+    """Return all watchlist keywords as list of dicts with id and keyword."""
+    session = get_session()
+    try:
+        kws = session.query(WatchlistKeyword).order_by(WatchlistKeyword.id.asc()).all()
+        return [{"id": k.id, "keyword": k.keyword} for k in kws]
+    finally:
+        session.close()
+
+def add_watchlist_keyword(keyword: str) -> dict | None:
+    """Add a new keyword to the watchlist. Returns created keyword dict or None if duplicate/error."""
+    keyword_clean = keyword.strip()
+    if not keyword_clean:
+        return None
+    session = get_session()
+    try:
+        kw = WatchlistKeyword(keyword=keyword_clean)
+        session.add(kw)
+        session.commit()
+        session.refresh(kw)
+        logger.info("Added watchlist keyword: %s", keyword_clean)
+        return {"id": kw.id, "keyword": kw.keyword}
+    except IntegrityError:
+        session.rollback()
+        return None
+    except Exception as e:
+        session.rollback()
+        logger.error("Failed to add watchlist keyword [%s]: %s", keyword_clean, e)
+        return None
+    finally:
+        session.close()
+
+def delete_watchlist_keyword(keyword_id: int) -> bool:
+    """Delete a keyword by ID. Returns True if deleted."""
+    session = get_session()
+    try:
+        kw = session.query(WatchlistKeyword).get(keyword_id)
+        if kw:
+            session.delete(kw)
+            session.commit()
+            logger.info("Deleted watchlist keyword id: %s", keyword_id)
+            return True
+        return False
+    except Exception as e:
+        session.rollback()
+        logger.error("Failed to delete watchlist keyword id=%s: %s", keyword_id, e)
+        return False
+    finally:
+        session.close()
+

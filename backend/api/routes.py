@@ -70,10 +70,14 @@ def register_routes(app: Flask) -> None:
             total = q.count()
             articles = q.order_by(Article.published_at.desc(), Article.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
 
+            from backend.database.models import WatchlistKeyword
+            db_kws = session.query(WatchlistKeyword).all()
+            active_keywords = [k.keyword.lower() for k in db_kws] or [k.lower() for k in config.ALERT_KEYWORDS]
+
             def is_watchlist(a: Article) -> bool:
                 text_to_check = f"{a.title} {a.summary or ''} {a.ai_summary or ''}".lower()
-                for kw in config.ALERT_KEYWORDS:
-                    if kw.lower() in text_to_check:
+                for kw in active_keywords:
+                    if kw in text_to_check:
                         return True
                 return False
 
@@ -253,6 +257,28 @@ def register_routes(app: Flask) -> None:
         logger.info("Manual scrape triggered via API")
         return jsonify({"status": "triggered", "message": "Scrape started in background."})
 
+    @app.post("/api/enrich")
+    def trigger_enrich():
+        def _run():
+            from backend.extractor.cve_enricher import enrich_cves_in_db
+            session = get_session()
+            try:
+                # Find CVEs that are missing EPSS
+                cves = session.query(CVE).filter(CVE.epss_score.is_(None)).all()
+                if cves:
+                    logger.info(f"Starting background enrichment for {len(cves)} CVEs...")
+                    enrich_cves_in_db(session, cves)
+                    logger.info("Background enrichment completed.")
+            except Exception as e:
+                logger.error(f"Background enrich failed: {e}")
+            finally:
+                session.close()
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+        logger.info("Manual enrich triggered via API")
+        return jsonify({"status": "triggered", "message": "Enrichment started in background."})
+
     @app.get("/api/feed.xml")
     def get_rss_feed():
         from flask import make_response
@@ -321,4 +347,31 @@ def register_routes(app: Flask) -> None:
             return response
         finally:
             session.close()
+
+    @app.get("/api/watchlist")
+    def get_watchlist():
+        from backend.database.db import get_watchlist_keywords
+        return jsonify({"keywords": get_watchlist_keywords()})
+
+    @app.post("/api/watchlist")
+    def create_watchlist_keyword():
+        from backend.database.db import add_watchlist_keyword
+        data = request.get_json(silent=True) or {}
+        keyword = data.get("keyword", "").strip()
+        if not keyword:
+            return jsonify({"error": "Keyword is required"}), 400
+        
+        result = add_watchlist_keyword(keyword)
+        if not result:
+            return jsonify({"error": "Keyword already exists or invalid"}), 409
+        return jsonify({"status": "created", "keyword": result}), 201
+
+    @app.delete("/api/watchlist/<int:kw_id>")
+    def delete_watchlist_kw(kw_id: int):
+        from backend.database.db import delete_watchlist_keyword
+        success = delete_watchlist_keyword(kw_id)
+        if not success:
+            return jsonify({"error": "Keyword not found"}), 404
+        return jsonify({"status": "deleted", "id": kw_id})
+
 

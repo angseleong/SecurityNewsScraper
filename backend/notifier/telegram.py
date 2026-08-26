@@ -17,9 +17,11 @@ def should_notify(article: Article) -> bool:
     if art_level >= min_level:
         return True
         
-    text_to_check = f"{article.title} {article.summary or ''}".lower()
-    for kw in config.ALERT_KEYWORDS:
-        if kw.lower() in text_to_check:
+    text_to_check = f"{article.title} {article.summary or ''} {article.ai_summary or ''}".lower()
+    from backend.database.db import get_watchlist_keywords
+    keywords = [k["keyword"].lower() for k in get_watchlist_keywords()] or [k.lower() for k in config.ALERT_KEYWORDS]
+    for kw in keywords:
+        if kw in text_to_check:
             return True
             
     return False
@@ -59,9 +61,20 @@ def send_alert(article: Article, cves: list[str]) -> bool:
     cves_text = f"\n<b>CVEs:</b> {', '.join(cves)}" if cves else ""
     sev_text = (article.severity or "info").upper()
     
+    # AI Details
+    ai_text = ""
+    if article.ai_summary:
+        ai_text += f"\n\n🤖 <b>AI Intel:</b>\n{article.ai_summary}"
+        if article.ai_attack_vector:
+            ai_text += f"\n<b>Attack Vector:</b> {article.ai_attack_vector}"
+        if article.ai_mitigation:
+            ai_text += f"\n<b>Mitigation:</b> {article.ai_mitigation}"
+        if article.ai_shodan_dork:
+            ai_text += f"\n<b>Shodan Dork:</b> <code>{article.ai_shodan_dork}</code>"
+    
     text = f"""{sev_emoji} <b>{sev_text} Alert</b>
 <b>{article.title}</b>
-<b>Source:</b> {article.source}{cves_text}
+<b>Source:</b> {article.source}{cves_text}{ai_text}
 
 {article.url}"""
 

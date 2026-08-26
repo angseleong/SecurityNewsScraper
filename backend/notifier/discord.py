@@ -36,6 +36,13 @@ def send_alert(article: Article) -> bool:
         }
     }
     
+    if article.ai_attack_vector:
+        embed["fields"].append({"name": "Attack Vector", "value": article.ai_attack_vector, "inline": False})
+    if article.ai_mitigation:
+        embed["fields"].append({"name": "Mitigation", "value": article.ai_mitigation, "inline": False})
+    if article.ai_shodan_dork:
+        embed["fields"].append({"name": "Shodan Dork", "value": f"`{article.ai_shodan_dork}`", "inline": False})
+    
     payload = {
         "username": "Threat Intel Bot",
         "embeds": [embed]

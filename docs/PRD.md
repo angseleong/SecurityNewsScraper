@@ -87,12 +87,12 @@ Semua data disimpan lokal di SQLite. Detail skema ada di `docs/ARCHITECTURE.md`.
 - **Relasi:** Setiap CVE yang ditemukan dikaitkan dengan artikel sumbernya via foreign key.
 
 ### F4 — Web Dashboard
-Antarmuka web modern yang dibangun menggunakan **Next.js**, **React**, dan **Tailwind CSS** sebagai frontend, mengonsumsi REST API dari Flask backend:
-- Feed artikel terkini dengan badge severity (🔴 Critical, 🟡 High, 🔵 Info).
-- Filter interaktif (client-side rendering) berdasarkan: sumber, tanggal, tingkat keparahan, keberadaan CVE tanpa reload halaman.
-- CVE Explorer: daftar semua CVE yang terdeteksi, dapat diurutkan dan dicari.
-- Statistik ringkas: total artikel per sumber, total CVE terdeteksi, grafik aktivitas 7 hari terakhir.
-- Tombol **"Scrape Now"** untuk trigger manual dengan status indikator.
+Antarmuka web modern bergaya "Bloomberg Terminal" (Neon Design System) yang dibangun menggunakan **Next.js**, **React**, dan **Tailwind CSS**, dengan struktur multi-halaman:
+- **`/` (Landing Page):** Halaman depan minimalis dengan hero section untuk menyambut user.
+- **`/radar` (Live Threat Feed):** Halaman utama berisi grid padat artikel terkini, filter interaktif, dan laci AI (TLDR, EPSS, PoC).
+- **`/cves` (CVE Explorer):** Mesin pencari khusus untuk membedah profil spesifik sebuah kerentanan (CVE).
+- **`/analytics` (Threat Trends):** Tampilan helicopter view berupa grafik tren kerentanan dan vendor paling terdampak.
+- **`/watchlist` (Scope & Settings):** Pusat konfigurasi target aset perusahaan untuk memprioritaskan peringatan (alert).
 
 ### F5 — Scheduler
 `APScheduler` menjalankan scraper secara berkala di background, default setiap **6 jam**. Interval dapat dikonfigurasi via file `.env` atau `config.py`. Scheduler berjalan sebagai bagian dari proses Flask server.

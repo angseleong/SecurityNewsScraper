@@ -56,3 +56,11 @@ class ScrapeLog(Base):
     articles_skipped = Column(Integer, default=0)
     status = Column(String(20), nullable=False)
     error_message = Column(Text, nullable=True)
+
+class WatchlistKeyword(Base):
+    __tablename__ = "watchlist_keywords"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    keyword = Column(String(100), unique=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+

@@ -1,283 +1,128 @@
-"use client"
+import Link from "next/link";
 
-import { useEffect, useState, useCallback, useMemo } from "react"
-import { fetchArticles, fetchStats, triggerScrape } from "@/lib/api"
-import { Article, Stats } from "@/lib/types"
-import ArticleRow from "@/components/ArticleRow"
-import FilterBar from "@/components/FilterBar"
-import { ShieldAlert, Shield, Activity, Database, Terminal } from "lucide-react"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis } from "recharts"
-
-const SEVERITY_COLORS = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#eab308",
-  info: "#3b82f6"
-}
-
-export default function Dashboard() {
-  const [articles, setArticles] = useState<Article[]>([])
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [total, setTotal] = useState(0)
-  const [pages, setPages] = useState(1)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState("")
-  const [severity, setSeverity] = useState("")
-  const [source, setSource] = useState("")
-  const [timeRange, setTimeRange] = useState("")
-  const [hasCve, setHasCve] = useState(false)
-  const [criticalOnly, setCriticalOnly] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [scraping, setScraping] = useState(false)
-
-  const loadArticles = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params: Record<string, string | number> = { page }
-      if (search) params.q = search
-      if (severity) params.severity = severity
-      if (source) params.source = source
-      if (timeRange) params.time_range = timeRange
-      if (hasCve) params.has_cve = "true"
-      const data = await fetchArticles(params)
-      setArticles(data.articles)
-      setTotal(data.total)
-      setPages(data.pages)
-    } catch {
-      setArticles([])
-    } finally {
-      setLoading(false)
-    }
-  }, [page, search, severity, source, timeRange, hasCve])
-
-  const loadStats = useCallback(async () => {
-    try {
-      const data = await fetchStats()
-      setStats(data)
-    } catch {}
-  }, [])
-
-  useEffect(() => { loadStats() }, [loadStats])
-  useEffect(() => { setPage(1) }, [search, severity, source, timeRange, hasCve])
-  useEffect(() => { loadArticles() }, [loadArticles])
-
-  const handleScrape = async () => {
-    setScraping(true)
-    try {
-      await triggerScrape()
-      setTimeout(() => {
-        loadArticles()
-        loadStats()
-        setScraping(false)
-      }, 5000)
-    } catch {
-      setScraping(false)
-    }
-  }
-
-  const pieData = useMemo(() => {
-    if (!stats?.severity_breakdown) return []
-    return Object.entries(stats.severity_breakdown).map(([name, value]) => ({
-      name: name.toUpperCase(),
-      value,
-      color: SEVERITY_COLORS[name as keyof typeof SEVERITY_COLORS] || SEVERITY_COLORS.info
-    })).filter(d => d.value > 0)
-  }, [stats])
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-mono flex flex-col">
-      {/* Ticker / Top Bar */}
-      <header className="border-b border-gray-800 bg-[#0a0a0a] px-4 py-2 flex items-center justify-between z-10 shrink-0">
-        <div className="flex items-center gap-2">
-          <Terminal size={18} className="text-cyan-500" />
-          <h1 className="text-sm font-bold tracking-widest text-gray-200">SEC_NEWS_SCRAPER <span className="text-gray-600">v1.1</span></h1>
-        </div>
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            SYSTEM ONLINE
-          </div>
-        </div>
-      </header>
+    <main className="relative min-h-[calc(100vh-56px)] w-full overflow-hidden" style={{ backgroundColor: '#000000' }}>
 
-      {/* Main Content Grid */}
-      <main className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-        
-        {/* Left Sidebar (Analytics) */}
-        <aside className="w-full lg:w-72 border-r border-gray-800 bg-[#050505] p-4 flex flex-col gap-6 overflow-y-auto">
-          
-          {/* Key Metrics */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-1">Telemetry</h2>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="glass-panel p-3 rounded-md flex flex-col items-center justify-center">
-                <span className="text-cyan-400 text-xl font-bold">{stats?.total_articles ?? 0}</span>
-                <span className="text-[10px] text-gray-500 uppercase">Articles</span>
-              </div>
-              <div className="glass-panel p-3 rounded-md flex flex-col items-center justify-center">
-                <span className="text-red-400 text-xl font-bold">{stats?.total_cves ?? 0}</span>
-                <span className="text-[10px] text-gray-500 uppercase">CVEs</span>
-              </div>
-            </div>
-            <div className="glass-panel p-3 rounded-md flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Database size={14} className="text-gray-400" />
-                <span className="text-xs text-gray-400">Sources</span>
-              </div>
-              <span className="text-sm font-bold">{stats ? Object.keys(stats.sources).length : 0}</span>
-            </div>
-            <div className="glass-panel p-3 rounded-md flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={14} className="text-red-500" />
-                <span className="text-xs text-red-500">Critical</span>
-              </div>
-              <span className="text-sm font-bold text-red-500">{stats?.severity_breakdown?.critical ?? 0}</span>
-            </div>
+      {/* Background: Abstract vertical lines — data stream aesthetic */}
+      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden select-none">
+        {/* Central bright line */}
+        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2" style={{ backgroundColor: '#34d59a', opacity: 0.15, boxShadow: '0 0 40px 4px rgba(52,213,154,0.15)' }} />
+        {/* Offset lines */}
+        {[80, 160, 260, 380].map((offset, i) => (
+          <div key={`l${i}`}>
+            <div className="absolute top-0 h-full w-px" style={{ left: `calc(50% - ${offset}px)`, backgroundColor: '#34d59a', opacity: 0.04 + i * 0.01 }} />
+            <div className="absolute top-0 h-full w-px" style={{ left: `calc(50% + ${offset}px)`, backgroundColor: '#34d59a', opacity: 0.04 + i * 0.01 }} />
           </div>
+        ))}
+        {/* Animated scanline */}
+        <div className="absolute left-0 w-full h-px animate-scanline" style={{ background: 'linear-gradient(90deg, transparent, rgba(52,213,154,0.15), transparent)' }} />
+        {/* Radial glow at center */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(52,213,154,0.06) 0%, transparent 70%)' }} />
+      </div>
 
-          {/* Severity Chart */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-1">Severity Distribution</h2>
-            <div className="h-48 glass-panel rounded-md p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={60}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+      {/* Content */}
+      <div className="relative z-10 mx-auto flex max-w-[1200px] flex-col items-center px-6 pt-32 pb-20 text-center" style={{ gap: '32px' }}>
 
-          {/* Incident Trends Chart */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-1">7-Day Incident Trend</h2>
-            <div className="h-32 glass-panel rounded-md p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={stats?.incident_trends?.slice().reverse() || []}>
-                  <XAxis dataKey="date" hide />
-                  <YAxis hide />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '10px' }}
-                    itemStyle={{ color: '#06b6d4' }}
-                    labelStyle={{ color: '#888' }}
-                  />
-                  <Line type="monotone" dataKey="count" stroke="#06b6d4" strokeWidth={2} dot={{ r: 2, fill: "#06b6d4" }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Top Affected Software */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-1">Top Targeted Systems</h2>
-            <div className="glass-panel rounded-md p-3 flex flex-wrap gap-2">
-              {stats?.top_software?.length ? (
-                stats.top_software.map((sw, i) => (
-                  <div key={sw.name} className="flex items-center gap-1 text-[10px] font-bold bg-cyan-950/30 border border-cyan-900/50 text-cyan-400 px-2 py-1 rounded">
-                    <span className="uppercase">{sw.name}</span>
-                    <span className="text-cyan-700">|</span>
-                    <span className="text-cyan-200">{sw.count}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="text-xs text-gray-600">INSUFFICIENT DATA</span>
-              )}
-            </div>
-          </div>
-
-        </aside>
-
-        {/* Right Section (Data Grid) */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#080808]">
-          {/* Controls */}
-          <div className="p-4 border-b border-gray-800 glass-panel z-10 sticky top-0">
-            <FilterBar
-              search={search}
-              severity={severity}
-              source={source}
-              timeRange={timeRange}
-              hasCve={hasCve}
-              criticalOnly={criticalOnly}
-              onSearch={setSearch}
-              onSeverity={setSeverity}
-              onSource={setSource}
-              onTimeRange={setTimeRange}
-              onHasCve={setHasCve}
-              onCriticalOnly={setCriticalOnly}
-              onScrape={handleScrape}
-              scraping={scraping}
-            />
-          </div>
-
-          {/* Grid Header */}
-          <div className="flex items-center gap-3 px-6 py-2 border-b border-gray-800/50 text-[10px] uppercase tracking-widest text-gray-500 bg-black sticky top-[73px] z-10">
-            <div className="flex items-center gap-3 w-full sm:w-48 shrink-0">
-              <span className="w-24 shrink-0">Time</span>
-              <span className="w-24 shrink-0">Source</span>
-            </div>
-            <div className="w-full sm:w-32 shrink-0">Indicators</div>
-            <div className="flex-1">Title / Intel</div>
-          </div>
-
-          {/* Data List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1">
-            {loading ? (
-              <div className="space-y-1">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="h-10 glass-panel rounded animate-pulse" />
-                ))}
-              </div>
-            ) : articles.length === 0 ? (
-              <div className="text-center py-20 text-gray-600 flex flex-col items-center gap-3">
-                <Activity size={32} className="text-gray-800" />
-                <p>NO INTEL FOUND FOR QUERY</p>
-              </div>
-            ) : (
-              <div className="glass-panel border border-gray-800/50 rounded-md overflow-hidden">
-                {articles.map((a) => <ArticleRow key={a.id} article={a} />)}
-              </div>
-            )}
-            
-            {/* Pagination Controls */}
-            {pages > 1 && (
-              <div className="flex items-center justify-between p-4 mt-4 glass-panel border border-gray-800 rounded-md">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1 bg-gray-900 border border-gray-700 hover:border-gray-500 disabled:opacity-30 rounded text-xs transition-colors"
-                >
-                  &lt; PREV
-                </button>
-                <span className="text-xs text-gray-500">PAGE {page} OF {pages}</span>
-                <button
-                  onClick={() => setPage((p) => Math.min(pages, p + 1))}
-                  disabled={page === pages}
-                  className="px-3 py-1 bg-gray-900 border border-gray-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-30 rounded text-xs transition-colors"
-                >
-                  NEXT &gt;
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Status badge */}
+        <div className="animate-float-up flex items-center gap-2 rounded-full px-4 py-1.5" style={{ border: '1px solid #303236', backgroundColor: '#151617' }}>
+          <span className="h-2 w-2 rounded-full animate-glow-pulse" style={{ backgroundColor: '#34d59a' }} />
+          <span className={`text-xs font-medium tracking-widest uppercase`} style={{ color: '#797d86', fontFamily: 'var(--font-fira-code), monospace', letterSpacing: '0.1em' }}>
+            System Online · Monitoring 4 Targets
+          </span>
         </div>
 
-      </main>
-    </div>
-  )
+        {/* Headline */}
+        <h1
+          className="animate-float-up-delay max-w-4xl font-medium"
+          style={{
+            fontSize: 'clamp(40px, 6vw, 80px)',
+            lineHeight: 1,
+            letterSpacing: '-3.2px',
+            color: '#ffffff',
+          }}
+        >
+          Automated Threat Intel.{' '}
+          <br />
+          <span style={{ color: '#34d59a' }}>Zero Noise.</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p
+          className="animate-float-up-delay-2 max-w-xl"
+          style={{
+            fontSize: '18px',
+            lineHeight: 1.6,
+            letterSpacing: '-0.36px',
+            color: '#797d86',
+          }}
+        >
+          Monitors global vulnerability disclosures, evaluates exploit probability via EPSS, and delivers AI-analyzed intel before a threat becomes a breach.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="animate-float-up-delay-2 flex items-center gap-4 mt-4">
+          <Link
+            href="/radar"
+            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105"
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#151617',
+              borderRadius: '9999px',
+              padding: '14px 32px',
+              fontSize: '15px',
+              letterSpacing: '-0.4px',
+            }}
+          >
+            Enter Terminal →
+          </Link>
+          <a
+            href="https://github.com/angseleong/SecurityNewsScraper"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center font-medium transition-all duration-200 hover:scale-105"
+            style={{
+              backgroundColor: 'transparent',
+              color: '#ffffff',
+              border: '1px solid #303236',
+              borderRadius: '9999px',
+              padding: '14px 24px',
+              fontSize: '15px',
+              letterSpacing: '-0.4px',
+            }}
+          >
+            View Source
+          </a>
+        </div>
+
+        {/* Feature Pills */}
+        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
+          {[
+            { icon: '◉', label: 'AI Analysis', desc: 'Gemini-powered TLDR, attack vectors, and mitigation for every article.' },
+            { icon: '◈', label: 'CVE Enrichment', desc: 'Automatic EPSS scoring, CISA KEV lookup, and GitHub PoC discovery.' },
+            { icon: '◎', label: 'Real-time Alerts', desc: 'Instant Telegram & Discord notifications for critical threats.' },
+          ].map((feature) => (
+            <div
+              key={feature.label}
+              className="rounded text-left p-6 transition-colors duration-200"
+              style={{
+                backgroundColor: '#151617',
+                border: '1px solid #303236',
+                borderRadius: '4px',
+              }}
+            >
+              <div className="text-lg mb-3" style={{ color: '#34d59a' }}>{feature.icon}</div>
+              <h3 className="text-sm font-semibold mb-1.5" style={{ color: '#ffffff', letterSpacing: '-0.3px' }}>
+                {feature.label}
+              </h3>
+              <p className="text-xs leading-relaxed" style={{ color: '#797d86' }}>
+                {feature.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </main>
+  );
 }
