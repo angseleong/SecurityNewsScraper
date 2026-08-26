@@ -22,9 +22,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+init_db()
+app = create_app()
+
 def main() -> None:
-    init_db()
-    app = create_app()
     logger.info("SecurityNewsScraper backend starting on port %s", config.PORT)
     app.run(host="0.0.0.0", port=config.PORT, debug=config.FLASK_DEBUG)
 
