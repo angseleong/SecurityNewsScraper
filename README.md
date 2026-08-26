@@ -124,10 +124,10 @@ npm run dev
 
 ## ☁️ Production Deployment
 
-SNS is ready to be deployed on modern PaaS providers.
+SNS is built to be deployed for free on providers that support Python with persistent storage.
 
-- **Backend (Render)**: Use the provided `render.yaml` to deploy both the API and the Background Worker onto a single persistent disk instance. `start.sh` automatically manages both processes.
-- **Frontend (Vercel)**: Connect your repo to Vercel, set the Framework Preset to Next.js, and configure `NEXT_PUBLIC_API_URL` to point to your Render backend.
+- **Backend (AlwaysData)**: Deploy the Flask API and Background Worker on [AlwaysData.com](https://alwaysdata.com) (Free 100MB persistent storage, no credit card required). Clone the repo in your AlwaysData SSH terminal and use the provided `start.sh` to run both the API and Scraper daemon.
+- **Frontend (Vercel)**: Connect your repo to Vercel, set the Framework Preset to Next.js, and configure `NEXT_PUBLIC_API_URL` to point to your AlwaysData backend URL.
 
 ---
 
